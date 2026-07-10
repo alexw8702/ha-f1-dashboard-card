@@ -57,9 +57,11 @@ type: custom:f1-session-card
 entity: sensor.f1_dashboard_session_status
 weather_entity: sensor.f1_dashboard_wetter_vorhersage   # optional (Tages-Wetter)
 hourly_entity: sensor.f1_dashboard_wetter_stuendlich    # optional (stündlicher Renntag)
+live_track_entity: sensor.f1_dashboard_live_streckenstatus   # optional (Live-Modus)
+live_timing_entity: sensor.f1_dashboard_live_timing_tower     # optional (Live-Modus)
 ```
 
-> Ohne `weather_entity`/`hourly_entity` blendet die Karte den jeweiligen Wetterblock einfach aus.
+> Ohne `weather_entity`/`hourly_entity` blendet die Karte den jeweiligen Wetterblock einfach aus. Sind `live_track_entity` und `live_timing_entity` gesetzt und läuft gerade eine Session, schaltet die Karte automatisch auf eine Live-Ansicht mit Streckenstatus-Banner und komplettem Timing Tower (Position, Team, Gap, letzte Rundenzeit, Boxenstopp-Status) – sonst zeigt sie weiterhin Countdown und Session-Zeitplan.
 
 ### Letztes Rennen (Ergebnis, Reifen, Boxenstopps)
 
