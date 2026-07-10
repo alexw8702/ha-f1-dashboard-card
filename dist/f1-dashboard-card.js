@@ -636,6 +636,28 @@
           .ht{font-size:.74rem;font-weight:700;color:#f3f4f7;font-variant-numeric:tabular-nums}
           .hr{font-size:.58rem;color:#7ab0ff;margin-top:1px}
           .hw{font-size:.54rem;color:#8b909a;margin-top:1px}
+
+          /* Live-Ansicht */
+          .live-banner{display:flex;align-items:center;gap:8px;padding:10px 14px;border-radius:12px;margin-bottom:14px;font-weight:700;font-size:.82rem;letter-spacing:.3px}
+          .live-banner.green{background:rgba(0,215,182,.12);color:#00e6c3}
+          .live-banner.yellow{background:rgba(244,198,26,.14);color:#f4c61a}
+          .live-banner.safety{background:rgba(255,140,0,.14);color:#ffa733}
+          .live-banner.red{background:rgba(237,17,49,.16);color:#ff6b81}
+          .live-dot{width:8px;height:8px;border-radius:50%;background:currentColor;animation:pulse 1.6s infinite}
+          .ltower{display:flex;flex-direction:column;gap:2px;max-height:520px;overflow-y:auto}
+          .lrow{display:grid;grid-template-columns:24px 4px 1fr auto auto;align-items:center;gap:8px;padding:6px 6px;border-radius:8px;font-size:.78rem}
+          .lrow:nth-child(odd){background:rgba(255,255,255,.02)}
+          .lrow.retired{opacity:.4}
+          .lpos{font-weight:800;text-align:center;color:#e6e8ec;font-variant-numeric:tabular-nums}
+          .laccent{width:4px;height:22px;border-radius:4px}
+          .linfo{display:flex;align-items:baseline;gap:6px;min-width:0}
+          .ltla{font-weight:800;color:#f3f4f7}
+          .lname{font-size:.68rem;color:#9096a0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+          .lgap{font-size:.7rem;color:#9096a0;font-variant-numeric:tabular-nums;text-align:right;min-width:48px}
+          .llap{font-size:.7rem;color:#7ab0ff;font-variant-numeric:tabular-nums;text-align:right;min-width:56px}
+          .lbadge{font-size:.55rem;font-weight:800;padding:2px 5px;border-radius:5px;flex:none}
+          .lbadge.pit{background:rgba(122,176,255,.16);color:#7ab0ff}
+          .lbadge.out{background:rgba(237,17,49,.16);color:#ff6b81}
         </style>
         <div class="card">
           <div class="head">
