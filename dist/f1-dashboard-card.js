@@ -1,7 +1,7 @@
 /* ============================================================
    F1 Dashboard Cards  ·  f1-standings-card + f1-session-card
-   Deployment: HACS (Plugin) – siehe README
-   Repo:       https://github.com/alexw8702/ha-f1-dashboard-card
+   Deployment: /config/www/f1/f1-cards.js
+   Resource:   url: /local/f1/f1-cards.js  (type: module)
    Datenquellen: Jolpica-F1 (Standings/Kalender), Open-Meteo (Wetter),
                  Streckenlayouts: julesr0y/f1-circuits-svg (CC-BY-4.0)
    ============================================================ */
@@ -382,7 +382,7 @@
         </div>`;
     }
 
-    /* --- Wetter rendern: 4-Tage-Leiste + stuendlicher Renntag --- */
+    /* --- Wetter rendern: 3-Tage-Leiste (Rennwochenende) + stuendlicher Renntag --- */
     _renderWeather(next) {
       let daysHtml = "";
       if (this._config.weather_entity) {
@@ -777,13 +777,13 @@
 
   window.customCards = window.customCards || [];
   window.customCards.push(
-    { type: "f1-drivers-card", name: "F1 Fahrerwertung", description: "F1 Fahrer-Weltmeisterschaft mit Teamfarben, Details & Wikipedia-Link", preview: false, documentationURL: "https://github.com/alexw8702/ha-f1-dashboard-card" },
-    { type: "f1-constructors-card", name: "F1 Konstrukteurswertung", description: "F1 Konstrukteurs-Weltmeisterschaft mit Teamfarben & Details", preview: false, documentationURL: "https://github.com/alexw8702/ha-f1-dashboard-card" },
-    { type: "f1-session-card", name: "F1 Rennwochenende", description: "Streckenlayout, Fakten, Countdown, Zeitplan & Wetter", preview: false, documentationURL: "https://github.com/alexw8702/ha-f1-dashboard-card" },
-    { type: "f1-race-recap-card", name: "F1 Letztes Rennen", description: "Ergebnis, Reifenstrategie & Boxenstopps (OpenF1)", preview: false, documentationURL: "https://github.com/alexw8702/ha-f1-dashboard-card" }
+    { type: "f1-drivers-card", name: "F1 Fahrerwertung", description: "F1 Fahrer-Weltmeisterschaft mit Teamfarben, Details & Wikipedia-Link", preview: false, documentationURL: "https://github.com/alexw8702/ha-f1-dashboard" },
+    { type: "f1-constructors-card", name: "F1 Konstrukteurswertung", description: "F1 Konstrukteurs-Weltmeisterschaft mit Teamfarben & Details", preview: false, documentationURL: "https://github.com/alexw8702/ha-f1-dashboard" },
+    { type: "f1-session-card", name: "F1 Rennwochenende", description: "Streckenlayout, Fakten, Countdown, Zeitplan & Wetter", preview: false, documentationURL: "https://github.com/alexw8702/ha-f1-dashboard" },
+    { type: "f1-race-recap-card", name: "F1 Letztes Rennen", description: "Ergebnis, Reifenstrategie & Boxenstopps (OpenF1)", preview: false, documentationURL: "https://github.com/alexw8702/ha-f1-dashboard" }
   );
 
-  console.info("%c F1-DASHBOARD-CARD %c v1.0.0 ",
+  console.info("%c F1-DASHBOARD-CARD %c v0.0.2 ",
     "background:#ED1131;color:#fff;font-weight:700;border-radius:3px 0 0 3px;padding:2px 6px",
     "background:#1e1e28;color:#00D7B6;border-radius:0 3px 3px 0;padding:2px 6px");
 })();
