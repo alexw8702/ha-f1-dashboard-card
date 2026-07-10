@@ -257,6 +257,244 @@
        live_positions_entity: sensor.f1_dashboard_live_track_positionen (optional,
                               aktiviert die Live-Streckenkarte auf Canvas-Basis)
      ========================================================== */
+  /* ==========================================================
+     LIVE-STRECKENKARTE  ·  F1TrackMap (Canvas)
+     Zeichnet die Fahrzeugpositionen aus Position.z auf ein Canvas.
+     Es wird keine vordefinierte Streckengeometrie benoetigt: die
+     Fahrspuren der Autos zeichnen das Layout selbst (Trail-Canvas).
+     Bei Rot/SC/VSC pausiert die Karte gemaess Reglement-Logik.
+     ========================================================== */
+  const FLAG_META = {
+    "2": { text: "GELBE FLAGGE", color: "#f4c61a" },
+    "4": { text: "SAFETY CAR", color: "#ffa733" },
+    "5": { text: "ROTE FLAGGE", color: "#ff4d63" },
+    "6": { text: "VIRTUAL SAFETY CAR", color: "#ffa733" },
+  };
+  const PAUSED_FLAGS = new Set(["4", "5", "6"]);
+  const MAX_TRAIL_SEGMENTS = 4200; // ~3 Laps bei 22 Autos und 1 Update/s
+
+  class F1TrackMap {
+    constructor(host) {
+      this._host = host;
+      this._canvas = document.createElement("canvas");
+      this._canvas.className = "trackmap-canvas";
+      host.appendChild(this._canvas);
+      this._ctx = this._canvas.getContext("2d");
+      this._trail = document.createElement("canvas");
+      this._trailCtx = this._trail.getContext("2d");
+
+      this._drivers = new Map();   // Nummer -> {x,y,tx,ty,colour,label,onTrack}
+      this._segments = [];         // Fahrspuren in Weltkoordinaten
+      this._bounds = null;         // {minX,maxX,minY,maxY} inkl. Padding
+      this._view = null;           // {s,ox,oy,w,h} Pixel-Transformation
+      this._flag = "1";
+      this._raf = null;
+      this._visible = true;
+      this._lastTs = 0;
+
+      this._ro = new ResizeObserver(() => this._resize());
+      this._ro.observe(host);
+      this._io = new IntersectionObserver((entries) => {
+        this._visible = entries[0].isIntersecting;
+        if (this._visible) this._start(); else this._stopRaf();
+      });
+      this._io.observe(host);
+      this._resize();
+      this._start();
+    }
+
+    destroy() {
+      this._stopRaf();
+      this._ro.disconnect();
+      this._io.disconnect();
+      if (this._canvas.parentNode) this._canvas.parentNode.removeChild(this._canvas);
+      this._drivers.clear();
+      this._segments = [];
+    }
+
+    /* Neue Sensordaten uebernehmen (1x pro Sekunde vom hass-Update). */
+    update(positions, bounds, flag) {
+      this._flag = String(flag ?? "1");
+      const paused = PAUSED_FLAGS.has(this._flag);
+
+      if (bounds && isFinite(bounds.min_x) && bounds.max_x > bounds.min_x && bounds.max_y > bounds.min_y) {
+        const padX = (bounds.max_x - bounds.min_x) * 0.06;
+        const padY = (bounds.max_y - bounds.min_y) * 0.06;
+        const nb = {
+          minX: bounds.min_x - padX, maxX: bounds.max_x + padX,
+          minY: bounds.min_y - padY, maxY: bounds.max_y + padY,
+        };
+        const changed = !this._bounds ||
+          Math.abs(nb.minX - this._bounds.minX) > 1 || Math.abs(nb.maxX - this._bounds.maxX) > 1 ||
+          Math.abs(nb.minY - this._bounds.minY) > 1 || Math.abs(nb.maxY - this._bounds.maxY) > 1;
+        this._bounds = nb;
+        if (changed) this._resize(); // Transformation + Trail neu aufbauen
+      }
+
+      const seen = new Set();
+      for (const p of positions || []) {
+        if (typeof p.x !== "number" || typeof p.y !== "number") continue;
+        const num = String(p.driver_number);
+        seen.add(num);
+        const colour = p.team_colour ? `#${String(p.team_colour).replace("#", "")}` : "#9096a0";
+        const onTrack = (p.status || "").toLowerCase() === "ontrack";
+        const d = this._drivers.get(num);
+        if (!d) {
+          this._drivers.set(num, { x: p.x, y: p.y, tx: p.x, ty: p.y, colour, label: p.tla || num, num, onTrack });
+        } else if (!paused) {
+          // Fahrspur nur bei aktivem Fahrbetrieb fortschreiben
+          if (onTrack && d.onTrack) {
+            this._segments.push({ x1: d.tx, y1: d.ty, x2: p.x, y2: p.y });
+            if (this._segments.length > MAX_TRAIL_SEGMENTS) this._segments.splice(0, this._segments.length - MAX_TRAIL_SEGMENTS);
+            this._appendTrailSegment(d.tx, d.ty, p.x, p.y);
+          }
+          d.tx = p.x; d.ty = p.y; d.colour = colour; d.label = p.tla || num; d.onTrack = onTrack;
+        } else {
+          d.onTrack = onTrack; // bei Pause nur Status pflegen, Ziel einfrieren
+        }
+      }
+      for (const num of this._drivers.keys()) if (!seen.has(num)) this._drivers.delete(num);
+    }
+
+    /* ---------- intern ---------- */
+    _start() { if (this._raf == null && this._visible) this._raf = requestAnimationFrame((t) => this._frame(t)); }
+    _stopRaf() { if (this._raf != null) { cancelAnimationFrame(this._raf); this._raf = null; } }
+
+    _resize() {
+      const w = this._host.clientWidth - 20; // Padding des Wrappers
+      if (w <= 0) return;
+      let h = Math.round(w * 0.58);
+      if (this._bounds) {
+        const aspect = (this._bounds.maxY - this._bounds.minY) / (this._bounds.maxX - this._bounds.minX);
+        h = Math.round(Math.min(Math.max(w * aspect, w * 0.34), w * 0.8));
+      }
+      const dpr = window.devicePixelRatio || 1;
+      this._canvas.width = Math.round(w * dpr);
+      this._canvas.height = Math.round(h * dpr);
+      this._canvas.style.height = `${h}px`;
+      this._trail.width = this._canvas.width;
+      this._trail.height = this._canvas.height;
+      this._ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      this._trailCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+      if (this._bounds) {
+        const sx = w / (this._bounds.maxX - this._bounds.minX);
+        const sy = h / (this._bounds.maxY - this._bounds.minY);
+        const s = Math.min(sx, sy);
+        this._view = {
+          s, w, h,
+          ox: (w - (this._bounds.maxX - this._bounds.minX) * s) / 2,
+          oy: (h - (this._bounds.maxY - this._bounds.minY) * s) / 2,
+        };
+        this._redrawTrail();
+      }
+    }
+
+    _toPx(x, y) {
+      const v = this._view, b = this._bounds;
+      // Y-Achse spiegeln: Weltkoordinaten wachsen nach oben, Canvas nach unten
+      return [
+        (x - b.minX) * v.s + v.ox,
+        v.h - ((y - b.minY) * v.s + v.oy),
+      ];
+    }
+
+    _trailStyle(ctx) {
+      ctx.strokeStyle = "rgba(230,232,236,.14)";
+      ctx.lineWidth = 5;
+      ctx.lineCap = "round";
+    }
+
+    _appendTrailSegment(x1, y1, x2, y2) {
+      if (!this._view) return;
+      const ctx = this._trailCtx;
+      const [ax, ay] = this._toPx(x1, y1);
+      const [bx, by] = this._toPx(x2, y2);
+      // Teleport-Artefakte (Boxengasse-Sprung, Datenluecke) nicht zeichnen
+      if (Math.hypot(bx - ax, by - ay) > Math.max(this._view.w, this._view.h) * 0.2) return;
+      this._trailStyle(ctx);
+      ctx.beginPath(); ctx.moveTo(ax, ay); ctx.lineTo(bx, by); ctx.stroke();
+    }
+
+    _redrawTrail() {
+      const ctx = this._trailCtx;
+      ctx.clearRect(0, 0, this._view.w, this._view.h);
+      this._trailStyle(ctx);
+      for (const seg of this._segments) {
+        const [ax, ay] = this._toPx(seg.x1, seg.y1);
+        const [bx, by] = this._toPx(seg.x2, seg.y2);
+        if (Math.hypot(bx - ax, by - ay) > Math.max(this._view.w, this._view.h) * 0.2) continue;
+        ctx.beginPath(); ctx.moveTo(ax, ay); ctx.lineTo(bx, by); ctx.stroke();
+      }
+    }
+
+    _frame(ts) {
+      this._raf = null;
+      const dt = this._lastTs ? Math.min((ts - this._lastTs) / 1000, 0.25) : 0.016;
+      this._lastTs = ts;
+      const ctx = this._ctx;
+      const paused = PAUSED_FLAGS.has(this._flag);
+
+      if (this._view) {
+        ctx.clearRect(0, 0, this._view.w, this._view.h);
+        ctx.drawImage(this._trail, 0, 0, this._view.w, this._view.h);
+
+        if (this._flag !== "5") { // bei Roter Flagge keine Autos
+          const alpha = paused ? 0.35 : 1;
+          const k = Math.min(1, dt * 3.2); // Glaettungsfaktor Richtung Zielposition
+          for (const d of this._drivers.values()) {
+            if (!d.onTrack) continue;
+            if (!paused) { d.x += (d.tx - d.x) * k; d.y += (d.ty - d.y) * k; }
+            const [px, py] = this._toPx(d.x, d.y);
+            ctx.globalAlpha = alpha;
+            ctx.beginPath();
+            ctx.arc(px, py, 8, 0, Math.PI * 2);
+            ctx.fillStyle = d.colour;
+            ctx.fill();
+            ctx.lineWidth = 1.5;
+            ctx.strokeStyle = "rgba(10,12,16,.85)";
+            ctx.stroke();
+            ctx.fillStyle = this._contrastText(d.colour);
+            ctx.font = "700 8px Roboto, sans-serif";
+            ctx.textAlign = "center";
+            ctx.textBaseline = "middle";
+            ctx.fillText(d.num, px, py + 0.5);
+            ctx.fillStyle = "rgba(243,244,247,.82)";
+            ctx.font = "600 9px Roboto, sans-serif";
+            ctx.textAlign = "left";
+            ctx.fillText(d.label, px + 11, py + 0.5);
+            ctx.globalAlpha = 1;
+          }
+        }
+        this._drawFlagOverlay(ctx);
+      }
+      this._start();
+    }
+
+    _drawFlagOverlay(ctx) {
+      const meta = FLAG_META[this._flag];
+      if (!meta) return;
+      ctx.font = "700 10px Roboto, sans-serif";
+      const tw = ctx.measureText(meta.text).width;
+      const x = 10, y = 10, h = 22, w = tw + 22;
+      ctx.fillStyle = "rgba(12,14,18,.78)";
+      ctx.beginPath();
+      ctx.roundRect ? ctx.roundRect(x, y, w, h, 11) : ctx.rect(x, y, w, h);
+      ctx.fill();
+      ctx.fillStyle = meta.color;
+      ctx.beginPath(); ctx.arc(x + 11, y + h / 2, 3.5, 0, Math.PI * 2); ctx.fill();
+      ctx.textAlign = "left"; ctx.textBaseline = "middle";
+      ctx.fillText(meta.text, x + 19, y + h / 2 + 0.5);
+    }
+
+    _contrastText(hex) {
+      const c = hex.replace("#", "");
+      if (c.length < 6) return "#0b0d11";
+      const r = parseInt(c.slice(0, 2), 16), g = parseInt(c.slice(2, 4), 16), b = parseInt(c.slice(4, 6), 16);
+      return (0.299 * r + 0.587 * g + 0.114 * b) > 150 ? "#0b0d11" : "#ffffff";
+    }
+  }
+
   class F1SessionCard extends HTMLElement {
     setConfig(config) {
       if (!config.entity) throw new Error("f1-session-card: 'entity' ist erforderlich");
