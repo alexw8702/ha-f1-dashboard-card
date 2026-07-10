@@ -279,6 +279,19 @@
       if (status === "active") { badgeCls = "active"; badgeTxt = "Session aktiv"; }
       else if (status === "upcoming") { badgeCls = "upcoming"; badgeTxt = "Anstehend"; }
 
+      const liveTrackEntity = this._config.live_track_entity;
+      const liveTimingEntity = this._config.live_timing_entity;
+      const liveTrackState = liveTrackEntity ? this._hass.states[liveTrackEntity] : null;
+      const isLive = status === "active" && liveTrackState && liveTrackState.state !== "unavailable" && liveTrackState.state !== "unknown";
+
+      if (isLive) {
+        this._statusEl.className = `tag active`;
+        this._statusEl.textContent = `Live${activeSession ? " \u00b7 " + activeSession : ""}`;
+        this._body.innerHTML = this._renderLive(liveTrackState, liveTimingEntity ? this._hass.states[liveTimingEntity] : null);
+        if (this._timer) { clearInterval(this._timer); this._timer = null; }
+        return;
+      }
+
       if (!next) {
         this._statusEl.className = `tag ${badgeCls}`;
         this._statusEl.textContent = badgeTxt;
