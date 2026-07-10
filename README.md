@@ -3,6 +3,8 @@
 [![HACS Custom](https://img.shields.io/badge/HACS-Custom-orange.svg?style=for-the-badge)](https://github.com/hacs/integration)
 [![Add Repo](https://img.shields.io/badge/HACS-Repo%20hinzuf%C3%BCgen-41BDF5.svg?style=for-the-badge)](https://my.home-assistant.io/redirect/hacs_repository/?owner=alexw8702&repository=ha-f1-dashboard-card&category=plugin)
 
+![F1 Dashboard Card Vorschau](images/preview.png)
+
 Vier eigenständige, dunkle Custom Cards für ein **Formel-1-Dashboard** in Home Assistant.
 
 | Karte | Element | Zeigt |
