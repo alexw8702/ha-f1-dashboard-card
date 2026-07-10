@@ -382,6 +382,47 @@
       this._startCountdown(upcoming.ts);
     }
 
+    /* --- Live-Ansicht: Streckenstatus + kompletter Timing Tower --- */
+    _renderLive(trackState, timingState) {
+      const label = (trackState.attributes && trackState.attributes.label) || trackState.state || "";
+      const statusClass = (label || "").toLowerCase().includes("safety") ? "safety"
+        : (label || "").toLowerCase().includes("gelb") ? "yellow"
+        : (label || "").toLowerCase().includes("rot") ? "red"
+        : "green";
+
+      const drivers = (timingState && timingState.attributes && timingState.attributes.drivers) || [];
+      let rows = "";
+      for (const d of drivers) {
+        const col = teamColor(d.team_id || "");
+        const badges = [
+          d.in_pit ? `<span class="lbadge pit">BOX</span>` : "",
+          d.retired ? `<span class="lbadge out">OUT</span>` : "",
+        ].join("");
+        rows += `
+          <div class="lrow ${d.retired ? "retired" : ""}">
+            <div class="lpos">${d.position || "-"}</div>
+            <div class="laccent" style="background:${col}"></div>
+            <div class="linfo">
+              <span class="ltla">${d.tla || ""}</span>
+              <span class="lname">${d.full_name || ""}</span>
+            </div>
+            <div class="lgap">${d.gap_to_leader || ""}</div>
+            <div class="llap">${d.last_lap_time || ""}</div>
+            ${badges}
+          </div>`;
+      }
+      if (!rows) {
+        rows = `<div class="empty">Warte auf Live-Daten\u2026</div>`;
+      }
+
+      return `
+        <div class="live-banner ${statusClass}">
+          <span class="live-dot"></span>
+          <span class="live-label">${label || "Live"}</span>
+        </div>
+        <div class="ltower">${rows}</div>`;
+    }
+
     /* --- Streckenlayout-SVG rendern (dezent-elegant) --- */
     _renderLayout(cd) {
       const [, , vbw, vbh] = (cd.vb || "0 0 500 500").split(/\s+/).map(Number);
