@@ -252,6 +252,10 @@
        entity:          sensor.f1_session_status   (Pflicht)
        weather_entity:  sensor.f1_wetter_vorhersage (optional, taeglich)
        hourly_entity:   sensor.f1_wetter_stuendlich (optional, stuendlich)
+       live_track_entity:     sensor.f1_dashboard_live_streckenstatus (optional)
+       live_timing_entity:    sensor.f1_dashboard_live_timing_tower  (optional)
+       live_positions_entity: sensor.f1_dashboard_live_track_positionen (optional,
+                              aktiviert die Live-Streckenkarte auf Canvas-Basis)
      ========================================================== */
   class F1SessionCard extends HTMLElement {
     setConfig(config) {
