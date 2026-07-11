@@ -1,5 +1,5 @@
 /** JSDOM-Test: f1-session-card (Vue 3) mit realen Sensor-Daten */
-const { JSDOM } = require('/home/claude/f1/node_modules/jsdom');
+const { JSDOM } = require('jsdom');
 const fs = require('fs');
 
 const dom = new JSDOM('<!DOCTYPE html><html><body></body></html>', {
@@ -24,7 +24,7 @@ window.fetch = async (url) => ({
   }),
 });
 
-const bundle = fs.readFileSync('/home/claude/f1-vue-redesign/dist/f1-dashboard-card.js', 'utf8');
+const bundle = fs.readFileSync('./dist/f1-dashboard-card.js', 'utf8');
 window.eval(bundle);
 
 // Reale Sensor-Struktur aus HA

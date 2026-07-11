@@ -6,7 +6,7 @@
 
 ![F1 Dashboard Card Vorschau](images/preview.png)
 
-Vier eigenständige, dunkeldesignte Custom Cards für ein **Formel-1-Dashboard** in Home Assistant. **v0.4.0** bringt ein komplettes **Redesign der Rennwochenende-Karte** sowie einen Wechsel der Codebasis auf **Vue 3** (Single-File-Components, `.ce.vue`) für schnellere Entwicklung und einfacheres Styling.
+Vier eigenständige, dunkeldesignte Custom Cards für ein **Formel-1-Dashboard** in Home Assistant. **v0.4.1** bringt ein komplettes **Redesign der Rennwochenende-Karte** sowie einen Wechsel der Codebasis auf **Vue 3** (Single-File-Components, `.ce.vue`) für schnellere Entwicklung und einfacheres Styling.
 
 | Karte | Element | Zeigt |
 |-------|---------|-------|
@@ -188,6 +188,12 @@ cards:
 ---
 
 ## Changelog
+
+### v0.4.1
+- 🔧 **Bugfix (Rennrückblick-Header)**: 
+  - Die Rennrückblick-Karte (`f1-race-recap-card`) zeigt nun den Circuit-Namen (z. B. `Spa-Francorchamps`) und das Land als Fallback an, falls `raceName` und `date` in den Sensorattributen fehlen.
+- 🔧 **Entwickler-Tools**:
+  - JSDOM-Testpfade wurden korrigiert, um die Tests lokal in jeder Umgebung ausführen zu können. `jsdom` wurde als Dev-Abhängigkeit hinzugefügt.
 
 ### v0.4.0 (Vue-Redesign)
 - 🧩 Codebasis auf **Vue 3** Single-File-Components (`.ce.vue`) umgestellt

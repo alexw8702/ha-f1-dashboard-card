@@ -19,8 +19,8 @@ const state = computed(() =>
 
 const recap = computed(() => state.value?.attributes ?? {})
 
-const raceName = computed(() => recap.value.raceName || 'Rennen')
-const raceDate = computed(() => recap.value.date || '–')
+const raceName = computed(() => recap.value.circuit_short_name || recap.value.raceName || 'Rennen')
+const raceDate = computed(() => recap.value.date || recap.value.country_name || '–')
 
 const results = computed(() => {
   const raw = recap.value.results || []
