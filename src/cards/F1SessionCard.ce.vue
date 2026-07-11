@@ -185,46 +185,53 @@ const updatedLabel = computed(() =>
         </div>
       </div>
 
-      <!-- ================= COUNTDOWN ================= -->
-      <div class="countdown" v-if="countdown && nextSession">
-        <span class="countdown-label">Nächste Session · {{ nextSession.label }}</span>
-        <span class="countdown-value">{{ countdown }}</span>
-      </div>
-
-      <!-- ================= ZEITPLAN ================= -->
-      <section class="section">
-        <button class="section-head" @click="toggle('schedule')">
-          <span>Wochenende Zeitplan</span>
-          <span class="chevron" :class="{ open: openSections.schedule }">⌃</span>
-        </button>
-        <table v-if="openSections.schedule" class="schedule">
-          <tbody>
-            <tr v-for="row in schedule" :key="row.label" :class="{ highlight: row.highlight, past: row.dt.getTime() < now }">
-              <td class="s-label">{{ row.label }}</td>
-              <td class="s-date">{{ row.day }}, {{ row.date }}</td>
-              <td class="s-time">{{ row.time }}</td>
-            </tr>
-          </tbody>
-        </table>
-      </section>
-
-      <!-- ================= WETTER AM CIRCUIT ================= -->
-      <section class="section">
-        <button class="section-head" @click="toggle('conditions')">
-          <span>Strecken-Bedingungen</span>
-          <span class="chevron" :class="{ open: openSections.conditions }">⌃</span>
-        </button>
-        <div v-if="openSections.conditions" class="weather-row">
-          <div v-for="w in weekendWeather" :key="w.label" class="weather-day" :class="{ race: w.isRaceDay }">
-            <span class="w-label">{{ w.label }}</span>
-            <span class="w-icon">{{ w.icon }}</span>
-            <span class="w-temp">{{ w.tMax }}°<small>/{{ w.tMin }}°</small></span>
-            <span class="w-detail">💧 {{ w.rain ?? '–' }}%</span>
-            <span class="w-detail">💨 {{ w.wind }} km/h</span>
+      <!-- ================= RESPONSIVE SECTIONS GRID ================= -->
+      <div class="sections-grid">
+        <div class="sections-left">
+          <!-- ================= COUNTDOWN ================= -->
+          <div class="countdown" v-if="countdown && nextSession">
+            <span class="countdown-label">Nächste Session · {{ nextSession.label }}</span>
+            <span class="countdown-value">{{ countdown }}</span>
           </div>
-          <div v-if="!weekendWeather.length" class="w-empty">Wetterdaten werden geladen …</div>
+
+          <!-- ================= ZEITPLAN ================= -->
+          <section class="section">
+            <button class="section-head" @click="toggle('schedule')">
+              <span>Wochenende Zeitplan</span>
+              <span class="chevron" :class="{ open: openSections.schedule }">⌃</span>
+            </button>
+            <table v-if="openSections.schedule" class="schedule">
+              <tbody>
+                <tr v-for="row in schedule" :key="row.label" :class="{ highlight: row.highlight, past: row.dt.getTime() < now }">
+                  <td class="s-label">{{ row.label }}</td>
+                  <td class="s-date">{{ row.day }}, {{ row.date }}</td>
+                  <td class="s-time">{{ row.time }}</td>
+                </tr>
+              </tbody>
+            </table>
+          </section>
         </div>
-      </section>
+
+        <div class="sections-right">
+          <!-- ================= WETTER AM CIRCUIT ================= -->
+          <section class="section">
+            <button class="section-head" @click="toggle('conditions')">
+              <span>Strecken-Bedingungen</span>
+              <span class="chevron" :class="{ open: openSections.conditions }">⌃</span>
+            </button>
+            <div v-if="openSections.conditions" class="weather-row">
+              <div v-for="w in weekendWeather" :key="w.label" class="weather-day" :class="{ race: w.isRaceDay }">
+                <span class="w-label">{{ w.label }}</span>
+                <span class="w-icon">{{ w.icon }}</span>
+                <span class="w-temp">{{ w.tMax }}°<small>/{{ w.tMin }}°</small></span>
+                <span class="w-detail">💧 {{ w.rain ?? '–' }}%</span>
+                <span class="w-detail">💨 {{ w.wind }} km/h</span>
+              </div>
+              <div v-if="!weekendWeather.length" class="w-empty">Wetterdaten werden geladen …</div>
+            </div>
+          </section>
+        </div>
+      </div>
 
       <!-- ================= FOOTER ================= -->
       <footer class="foot">
@@ -378,6 +385,30 @@ const updatedLabel = computed(() =>
   margin-top: 14px; text-align: center;
   font-size: 9.5px; color: var(--text-dim);
   letter-spacing: 0.12em; text-transform: uppercase;
+}
+
+/* ---------- Responsive Sections Grid ---------- */
+.sections-grid {
+  display: flex;
+  flex-direction: column;
+}
+.sections-left, .sections-right {
+  display: flex;
+  flex-direction: column;
+}
+
+@media (min-width: 600px) {
+  .sections-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+    margin-top: 4px;
+  }
+  .weather-row {
+    grid-template-columns: 1fr !important;
+    gap: 6px !important;
+  }
+  .hero-track { max-width: 220px; }
 }
 
 @media (max-width: 420px) {

@@ -6,7 +6,7 @@
 
 ![F1 Dashboard Banner](images/banner.jpg)
 
-Vier eigenständige, dunkeldesignte Custom Cards für ein **Formel-1-Dashboard** in Home Assistant. **v0.5.1** bringt ein komplettes **Redesign der Rennwochenende-Karte** sowie einen Wechsel der Codebasis auf **Vue 3** (Single-File-Components, `.ce.vue`) für schnellere Entwicklung und einfacheres Styling.
+Vier eigenständige, dunkeldesignte Custom Cards für ein **Formel-1-Dashboard** in Home Assistant. **v0.6.0** bringt ein komplettes **Redesign der Rennwochenende-Karte** sowie einen Wechsel der Codebasis auf **Vue 3** (Single-File-Components, `.ce.vue`) für schnellere Entwicklung und einfacheres Styling.
 
 | Karte | Element | Zeigt |
 |-------|---------|-------|
@@ -24,7 +24,7 @@ Vier eigenständige, dunkeldesignte Custom Cards für ein **Formel-1-Dashboard**
 - ☀️ **Wetter läuft jetzt direkt im Frontend**: Die Karte holt die Vorhersage selbst live via Open-Meteo (anhand der Streckenkoordinaten) – ein separater Wetter-Sensor ist für die Grundfunktion nicht mehr nötig. Angezeigt wird eine kompakte 3-Tages-Übersicht (Fr/Sa/So des Rennwochenendes).
 - ⏱️ Countdown und Session-Zeitplan laufen weiterhin über den bestehenden `entity`-Sensor (`sensor.f1_dashboard_session_status`).
 
-> **Wichtig zu Live-Timing:** Die in v0.3.0 eingeführte Canvas-Live-Streckenkarte mit Echtzeit-Fahrzeugpositionen sowie der Timing Tower sind im v0.4.0-Redesign der Session Card **nicht mehr Teil der Standardansicht**. Die zugehörigen Sensoren (`live_track_entity`, `live_timing_entity`, `live_positions_entity`) aus der [F1 Dashboard Integration](https://github.com/alexw8702/ha-f1-dashboard) existieren weiterhin und lassen sich über Entwickler-Tools einsehen – sie werden aktuell aber nicht mehr von dieser Card konsumiert. Wer Live-Tracking benötigt, sollte vorerst bei v0.3.0 bleiben oder die Sensordaten mit eigenen Karten/Templates visualisieren.
+> **Wichtig zu Live-Timing:** Die in v0.3.0 eingeführte Canvas-Live-Streckenkarte mit Echtzeit-Fahrzeugpositionen sowie der Timing Tower sind im v0.4.0-Redesign der Session Card **nicht mehr Teil der Standardansicht**. Die Session Card zeigt aber weiterhin `LIVE`, wenn ihr Session-Status-Sensor ein `active_session`-Attribut liefert. Die separaten Live-Sensoren der [F1 Dashboard Integration](https://github.com/alexw8702/ha-f1-dashboard) bleiben für eigene Automationen oder Templates verfügbar.
 
 ---
 
@@ -104,6 +104,7 @@ Die F1 Dashboard Integration stellt weiterhin folgende Live-Sensoren bereit, die
 
 - `sensor.f1_dashboard_live_streckenstatus` – Live-Flaggenstatus (Grün/Gelb/SC/Rot/VSC)
 - `sensor.f1_dashboard_live_timing_tower` – Live-Timing (Position, Gap, Rundenzeit, Box-Status)
+- `sensor.f1_dashboard_live_renn_kontrolle` – jüngste Rennkontrollmeldungen (Flaggen, Strafen, Untersuchungen)
 - `sensor.f1_dashboard_live_track_positionen` – Echtzeit-Fahrzeugpositionen (X/Y/Z, Bounds)
 
 Diese Sensoren sind nur während aktiver Sessions verfügbar und lassen sich unter *Entwickler-Tools → Zustände* einsehen.
@@ -116,7 +117,7 @@ Diese Sensoren sind nur während aktiver Sessions verfügbar und lassen sich unt
 
 ```yaml
 type: custom:f1-race-recap-card
-entity: sensor.f1_dashboard_rennrueckblick
+entity: sensor.f1_dashboard_letztes_rennen_detail
 ```
 
 **Features:**
@@ -140,7 +141,7 @@ entity: sensor.f1_dashboard_rennrueckblick
 |--------|-----|--------------|---------|-------------|
 | `entity` | string | ✅ | — | Session-Status-Sensor |
 
-Weitere, aus v0.3.0 bekannte Optionen (`live_track_entity`, `live_timing_entity`, `live_positions_entity`, `weather_entity`) werden von der neu gestalteten Karte aktuell nicht mehr ausgewertet – Wetter wird automatisch geladen, Live-Timing/-Streckenkarte sind vorübergehend nicht Teil dieser Card.
+Die aktuelle Session Card wertet nur `entity` aus. Wetter wird direkt geladen; Live-Timing und die Live-Streckenkarte sind vorübergehend nicht Teil dieser Card.
 
 ### Minimale Konfiguration
 
@@ -173,7 +174,7 @@ cards:
         max: 5
 
   - type: custom:f1-race-recap-card
-    entity: sensor.f1_dashboard_rennrueckblick
+    entity: sensor.f1_dashboard_letztes_rennen_detail
 ```
 
 ---
@@ -188,6 +189,17 @@ cards:
 ---
 
 ## Changelog
+
+### v0.6.0
+- ✅ **Robustere Session Card:** Der LIVE-Badge bei gesetztem `active_session` wird nun mit einem eigenen JSDOM-Test geprüft.
+- 🧪 **Einheitliche Validierung:** `npm run test:ci` baut das auslieferbare Bundle, prüft dessen Syntax und führt alle Card-Tests aus; dieselbe Prüfkette läuft in GitHub Actions.
+- 📚 **Entitätsdokumentation bereinigt:** Der Rennrückblick verwendet durchgängig `sensor.f1_dashboard_letztes_rennen_detail`; veraltete oder nicht existente Sensornamen wurden entfernt.
+
+- 📱 **Responsive Design (Kapitel 2)**:
+  * **Zweispaltige Fahrerwertung**: Auf Tablets und Desktops (Breite ab 600px) teilt sich die Fahrerwertungs-Tabelle automatisch genau in der Hälfte und wird zweispaltig nebeneinander dargestellt, um vertikalen Platz zu sparen.
+  * **Fahrer-Details in Konstrukteuren**: In der Konstrukteurswertung wird auf größeren Bildschirmen eine zweite Spalte mit den Fahrern des jeweiligen Teams inklusive deren Meisterschafts-Position und Punkten eingeblendet.
+  * **Session-Karte zweispaltig**: Countdown + Zeitplan links, Strecken-Bedingungen (Wetter) rechts – auf breiteren Bildschirmen nebeneinander statt gestapelt.
+  * **Letztes-Rennen-Karte zweispaltig**: Podium + Klassement links, Reifen-Strategie + Boxenstopps rechts – auf breiteren Viewports nebeneinander.
 
 ### v0.5.1
 - 🛠️ **Refactoring & Detail-Verbesserungen**:

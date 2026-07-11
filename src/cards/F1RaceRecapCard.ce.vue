@@ -80,65 +80,69 @@ function tireName(tire) {
     </div>
 
     <div v-else class="recap-content">
-      <!-- ================= PODIUM ================= -->
-      <section v-if="podium.length > 0" class="podium-section">
-        <h2>Podium</h2>
-        <div class="podium">
-          <div v-for="driver in podium" :key="driver.pos" class="podium-place" :class="`place-${driver.pos}`">
-            <div class="podium-num">{{ driver.pos }}</div>
-            <div class="podium-name">{{ driver.name }}</div>
-            <div class="podium-team" :style="{ color: teamColor(driver.teamId) }">{{ driver.team }}</div>
-            <div class="podium-points">{{ driver.points }} Pts</div>
-          </div>
-        </div>
-      </section>
-
-      <!-- ================= ERGEBNISSE 4-10 ================= -->
-      <section v-if="results.length > 3" class="results-section">
-        <h2>Klassement</h2>
-        <div class="results-list">
-          <div v-for="r in results.slice(3)" :key="r.pos" class="result-row">
-            <span class="result-pos">{{ r.pos }}</span>
-            <span class="result-name">{{ r.name }}</span>
-            <span class="result-team">{{ r.team }}</span>
-            <span class="result-points">{{ r.points }}</span>
-          </div>
-        </div>
-      </section>
-
-      <!-- ================= REIFEN-STRATEGIE ================= -->
-      <section v-if="stints.length > 0" class="stints-section">
-        <h2>Reifen-Strategie (Top 5)</h2>
-        <div class="stints-list">
-          <div v-for="(stint, idx) in stints.slice(0, 5)" :key="idx" class="stint-row">
-            <span class="stint-driver">{{ stint.driver?.name || 'P' + stint.position }}</span>
-            <div class="stint-tires" :style="{ borderColor: teamColor(stint.constructor?.constructorId) }">
-              <span
-                v-for="(tire, ti) in stint.compound"
-                :key="ti"
-                class="tire"
-                :style="{ backgroundColor: tireColor(tire), color: tireColor(tire) === '#f2f2f5' ? '#000' : '#fff' }"
-              >
-                {{ tireName(tire) }}
-              </span>
+      <div class="recap-left">
+        <!-- ================= PODIUM ================= -->
+        <section v-if="podium.length > 0" class="podium-section">
+          <h2>Podium</h2>
+          <div class="podium">
+            <div v-for="driver in podium" :key="driver.pos" class="podium-place" :class="`place-${driver.pos}`">
+              <div class="podium-num">{{ driver.pos }}</div>
+              <div class="podium-name">{{ driver.name }}</div>
+              <div class="podium-team" :style="{ color: teamColor(driver.teamId) }">{{ driver.team }}</div>
+              <div class="podium-points">{{ driver.points }} Pts</div>
             </div>
-            <span class="stint-laps">{{ stint.laps || '–' }} Rd</span>
           </div>
-        </div>
-      </section>
+        </section>
 
-      <!-- ================= BOXENSTOPPS ================= -->
-      <section v-if="pitStops.length > 0" class="pits-section">
-        <h2>Boxenstopps (Top 5)</h2>
-        <div class="pits-list">
-          <div v-for="(pit, idx) in pitStops.slice(0, 5)" :key="idx" class="pit-row">
-            <span class="pit-driver">{{ pit.driver?.name || '–' }}</span>
-            <span class="pit-stop">Stop {{ pit.stop }}</span>
-            <span class="pit-lap">R{{ pit.lap }}</span>
-            <span class="pit-time">{{ pit.duration || '–' }}</span>
+        <!-- ================= ERGEBNISSE 4-10 ================= -->
+        <section v-if="results.length > 3" class="results-section">
+          <h2>Klassement</h2>
+          <div class="results-list">
+            <div v-for="r in results.slice(3)" :key="r.pos" class="result-row">
+              <span class="result-pos">{{ r.pos }}</span>
+              <span class="result-name">{{ r.name }}</span>
+              <span class="result-team">{{ r.team }}</span>
+              <span class="result-points">{{ r.points }}</span>
+            </div>
           </div>
-        </div>
-      </section>
+        </section>
+      </div>
+
+      <div class="recap-right">
+        <!-- ================= REIFEN-STRATEGIE ================= -->
+        <section v-if="stints.length > 0" class="stints-section">
+          <h2>Reifen-Strategie (Top 5)</h2>
+          <div class="stints-list">
+            <div v-for="(stint, idx) in stints.slice(0, 5)" :key="idx" class="stint-row">
+              <span class="stint-driver">{{ stint.driver?.name || 'P' + stint.position }}</span>
+              <div class="stint-tires" :style="{ borderColor: teamColor(stint.constructor?.constructorId) }">
+                <span
+                  v-for="(tire, ti) in stint.compound"
+                  :key="ti"
+                  class="tire"
+                  :style="{ backgroundColor: tireColor(tire), color: tireColor(tire) === '#f2f2f5' ? '#000' : '#fff' }"
+                >
+                  {{ tireName(tire) }}
+                </span>
+              </div>
+              <span class="stint-laps">{{ stint.laps || '–' }} Rd</span>
+            </div>
+          </div>
+        </section>
+
+        <!-- ================= BOXENSTOPPS ================= -->
+        <section v-if="pitStops.length > 0" class="pits-section">
+          <h2>Boxenstopps (Top 5)</h2>
+          <div class="pits-list">
+            <div v-for="(pit, idx) in pitStops.slice(0, 5)" :key="idx" class="pit-row">
+              <span class="pit-driver">{{ pit.driver?.name || '–' }}</span>
+              <span class="pit-stop">Stop {{ pit.stop }}</span>
+              <span class="pit-lap">R{{ pit.lap }}</span>
+              <span class="pit-time">{{ pit.duration || '–' }}</span>
+            </div>
+          </div>
+        </section>
+      </div>
     </div>
 
     <!-- Footer -->
@@ -200,6 +204,19 @@ function tireName(tire) {
 .recap-content {
   position: relative; z-index: 1;
   display: flex; flex-direction: column; gap: 16px;
+}
+.recap-left, .recap-right {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+@media (min-width: 600px) {
+  .recap-content {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+  }
 }
 
 /* ========== Sections ========== */

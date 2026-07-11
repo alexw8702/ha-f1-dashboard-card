@@ -111,6 +111,8 @@ const drivers = computed(() => {
     })
 })
 
+const rowCount = computed(() => Math.ceil(drivers.value.length / 2))
+
 function selectDriver(driver) {
   selectedDriver.value = driver
 }
@@ -173,7 +175,7 @@ function countryEmoji(nationality) {
     </div>
 
     <!-- Rankings -->
-    <div v-else class="rankings">
+    <div v-else class="rankings" :style="{ '--row-count': rowCount }">
       <div v-for="driver in drivers" :key="driver.pos" class="driver-row" @click="selectDriver(driver)">
         <!-- Position + Name -->
         <div class="driver-info">
@@ -347,6 +349,15 @@ function countryEmoji(nationality) {
 .rankings {
   position: relative; z-index: 1;
   display: flex; flex-direction: column; gap: 8px;
+}
+@media (min-width: 600px) {
+  .rankings {
+    display: grid;
+    grid-template-rows: repeat(var(--row-count, 11), auto);
+    grid-auto-flow: column;
+    column-gap: 16px;
+    row-gap: 8px;
+  }
 }
 
 .driver-row {

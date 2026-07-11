@@ -1,3 +1,14 @@
+# v0.6.0 — Responsive Design + Validierung
+
+- Alle vier Karten nutzen ab 600 px Breite ein zweispaltiges Layout:
+  - **Fahrerwertung:** Tabelle teilt sich automatisch in der Hälfte in zwei Spalten.
+  - **Konstrukteurswertung:** Zweite Spalte zeigt die Fahrer des Teams mit WM-Position und Punkten.
+  - **Session-Karte:** Countdown + Zeitplan links, Wetter rechts.
+  - **Letztes-Rennen-Karte:** Podium + Klassement links, Reifen-Strategie + Boxenstopps rechts.
+- `npm run test:ci` baut das Bundle, prüft die Syntax und führt alle JSDOM-Tests aus.
+- Der aktive Session-Status (`active_session`) ist mit einem LIVE-Badge-Test abgedeckt.
+- Die dokumentierte Entität für den Rennrückblick lautet `sensor.f1_dashboard_letztes_rennen_detail`.
+
 # v0.4.0 — Vue 3 Redesign: Änderungen gegenüber v0.3.1
 
 ## 🎨 Design

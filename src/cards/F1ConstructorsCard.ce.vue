@@ -123,6 +123,19 @@ watch(selectedTeam, async (newVal) => {
   }
 })
 
+const driverStandingsEntity = computed(() => {
+  return Object.keys(props.hass?.states || {}).find(
+    key => key.includes('fahrerwertung') || key.includes('driver_standings')
+  ) || 'sensor.f1_dashboard_fahrerwertung'
+})
+
+const driverState = computed(() =>
+  props.hass?.states?.[driverStandingsEntity.value] || null)
+
+const driverStandings = computed(() => {
+  return driverState.value?.attributes?.standings || []
+})
+
 const teams = computed(() => {
   const attrs = state.value?.attributes ?? {}
   const raw = attrs.standings || []
@@ -136,6 +149,13 @@ const teams = computed(() => {
         (l.Constructor?.name.toLowerCase() === t.name.toLowerCase())
       )
       
+      const teamDriversList = driverStandings.value
+        .map((s, idx) => ({ ...s, pos: idx + 1 }))
+        .filter(s => 
+          (s.teamId && t.constructorId && s.teamId === t.constructorId) || 
+          (s.team && t.name && s.team.toLowerCase() === t.name.toLowerCase())
+        )
+      
       return {
         pos: i + 1,
         name: t.name || '–',
@@ -145,6 +165,7 @@ const teams = computed(() => {
         diff: i === 0 ? 0 : (raw[0]?.points || 0) - (t.points || 0),
         nationality: leg?.Constructor?.nationality || '',
         url: leg?.Constructor?.url || '',
+        drivers: teamDriversList,
       }
     })
 })
@@ -221,6 +242,18 @@ function countryEmoji(nationality) {
           <span class="points">{{ team.points }}</span>
           <span class="diff" v-if="team.diff > 0">-{{ team.diff }}</span>
           <span class="wins" v-if="team.wins > 0">🏆 {{ team.wins }}</span>
+        </div>
+
+        <!-- Team-Drivers Column (Sichtbar auf größeren Bildschirmen) -->
+        <div class="team-drivers-col" v-if="team.drivers && team.drivers.length">
+          <div v-for="d in team.drivers" :key="d.name" class="team-driver-item">
+            <span class="td-pos" :style="{ backgroundColor: teamColor(team.teamId) }">{{ d.pos }}</span>
+            <span class="td-name-col">
+              <span class="td-name">{{ d.name.split(' ').pop() }}</span>
+              <span class="td-tla" v-if="d.tla"> {{ d.tla }}</span>
+            </span>
+            <span class="td-pts">{{ d.points }} <span class="td-pts-lbl">P</span></span>
+          </div>
         </div>
       </div>
     </div>
@@ -379,6 +412,69 @@ function countryEmoji(nationality) {
 }
 .team-row:hover {
   background: rgba(255, 255, 255, 0.06);
+}
+
+.team-drivers-col {
+  display: none;
+}
+
+@media (min-width: 600px) {
+  .team-row {
+    display: grid;
+    grid-template-columns: 120px 1fr 100px 160px;
+    gap: 12px;
+    align-items: center;
+  }
+  .team-drivers-col {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    border-left: 1px solid rgba(255, 255, 255, 0.08);
+    padding-left: 12px;
+  }
+}
+
+.team-driver-item {
+  display: flex;
+  align-items: center;
+  font-size: 11px;
+  gap: 6px;
+  color: var(--text);
+}
+.td-pos {
+  width: 15px;
+  height: 15px;
+  border-radius: 3px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 9px;
+  font-weight: 800;
+  color: #fff;
+  flex-shrink: 0;
+}
+.td-name-col {
+  flex: 1;
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  text-align: left;
+}
+.td-tla {
+  color: var(--text-dim);
+  font-size: 9px;
+  font-weight: normal;
+}
+.td-pts {
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  min-width: 32px;
+  text-align: right;
+}
+.td-pts-lbl {
+  font-size: 8px;
+  color: var(--text-dim);
 }
 
 .position {

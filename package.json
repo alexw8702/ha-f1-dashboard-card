@@ -1,12 +1,15 @@
 {
   "name": "f1-dashboard-card",
-  "version": "0.5.1",
+  "version": "0.6.0",
   "description": "F1 Dashboard Cards - Vue 3 Redesign",
   "type": "module",
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "test": "npm run test:cards",
+    "test:cards": "node test_all_cards.cjs && node test_session_card.cjs && node test_responsive.cjs",
+    "test:ci": "npm run build && node --check dist/f1-dashboard-card.js && npm test"
   },
   "dependencies": {
     "vue": "^3.4.21"

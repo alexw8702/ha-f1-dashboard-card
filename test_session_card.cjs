@@ -56,6 +56,24 @@ el.setConfig({ entity: 'sensor.f1_dashboard_session_status' });
 el.hass = hass;
 window.document.body.appendChild(el);
 
+// Separater aktiver Session-Zustand: Der LIVE-Badge muss ohne einen
+// zusätzlichen Live-Track-Sensor allein aus active_session erscheinen.
+const liveEl = window.document.createElement('f1-session-card');
+liveEl.setConfig({ entity: 'sensor.f1_dashboard_session_status' });
+liveEl.hass = {
+  states: {
+    'sensor.f1_dashboard_session_status': {
+      ...hass.states['sensor.f1_dashboard_session_status'],
+      state: 'active',
+      attributes: {
+        ...hass.states['sensor.f1_dashboard_session_status'].attributes,
+        active_session: 'Quali',
+      },
+    },
+  },
+};
+window.document.body.appendChild(liveEl);
+
 setTimeout(() => {
   const root = el.shadowRoot;
   const text = root ? root.textContent : '';
@@ -71,6 +89,9 @@ setTimeout(() => {
   check('Zeitplan: FP1..Quali+Rennen', ['FP1','FP2','FP3','Quali','Rennen'].every(s => text.includes(s)));
   check('Countdown vorhanden', /\d+T \d{2}:\d{2}:\d{2}|\d{2}:\d{2}:\d{2}/.test(text));
   check('Badge ANSTEHEND', text.includes('ANSTEHEND'));
+  const liveBadge = liveEl.shadowRoot?.querySelector('.badge');
+  check('Live-Session zeigt LIVE-Badge', liveBadge?.textContent.trim() === 'LIVE');
+  check('Live-Session verwendet Live-Styling', liveBadge?.classList.contains('live'));
   check('Track-SVG (outline path)', !!root.querySelector('.track-outline'));
   check('Wetter Fr/Sa/So gerendert', (root.querySelectorAll('.weather-day').length === 3));
   check('Renntag-Highlight im Wetter', !!root.querySelector('.weather-day.race'));
