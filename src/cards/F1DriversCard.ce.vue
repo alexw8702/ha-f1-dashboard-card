@@ -449,6 +449,9 @@ function getPosClass(pos) {
     column-gap: 16px;
     row-gap: 8px;
   }
+}
+
+@media (min-width: 600px) {
   .overlay-content {
     max-width: 680px;
   }
@@ -500,6 +503,7 @@ function getPosClass(pos) {
     margin-bottom: 0;
   }
   .recent-results-section {
+    display: block;
     grid-column: 2;
     grid-row: 4;
     margin-top: 0;
@@ -811,9 +815,7 @@ function getPosClass(pos) {
 
 /* Recent Results Section */
 .recent-results-section {
-  margin-top: 12px;
-  border-top: 1px solid rgba(255, 255, 255, 0.08);
-  padding-top: 12px;
+  display: none;
 }
 .recent-results-title {
   font-size: 10px;
