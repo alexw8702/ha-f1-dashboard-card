@@ -6,8 +6,6 @@
 
 ![F1 Dashboard Banner](images/banner.jpg)
 
-![F1 Dashboard Card Vorschau](images/preview.png)
-
 Vier eigenständige, dunkeldesignte Custom Cards für ein **Formel-1-Dashboard** in Home Assistant. **v0.4.1** bringt ein komplettes **Redesign der Rennwochenende-Karte** sowie einen Wechsel der Codebasis auf **Vue 3** (Single-File-Components, `.ce.vue`) für schnellere Entwicklung und einfacheres Styling.
 
 | Karte | Element | Zeigt |
