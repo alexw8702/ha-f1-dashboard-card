@@ -920,6 +920,8 @@
           .hw{font-size:.54rem;color:#8b909a;margin-top:1px}
 
           /* Live-Ansicht */
+          .trackmap{position:relative;margin:0 0 14px;padding:10px;border-radius:16px;background:radial-gradient(120% 120% at 50% 20%,rgba(71,129,215,.08),rgba(255,255,255,.02) 60%);border:1px solid rgba(255,255,255,.05)}
+          .trackmap-canvas{display:block;width:100%}
           .live-banner{display:flex;align-items:center;gap:8px;padding:10px 14px;border-radius:12px;margin-bottom:14px;font-weight:700;font-size:.82rem;letter-spacing:.3px}
           .live-banner.green{background:rgba(0,215,182,.12);color:#00e6c3}
           .live-banner.yellow{background:rgba(244,198,26,.14);color:#f4c61a}
