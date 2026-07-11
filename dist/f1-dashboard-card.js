@@ -630,14 +630,51 @@
       this._startCountdown(upcoming.ts);
     }
 
-    /* --- Live-Ansicht: Streckenstatus + kompletter Timing Tower --- */
-    _renderLive(trackState, timingState) {
+    /* --- Live-Ansicht: Streckenstatus + Streckenkarte + Timing Tower.
+       Die DOM wird einmal aufgebaut und danach gezielt aktualisiert,
+       damit das Canvas (Interpolation, Fahrspuren) erhalten bleibt. --- */
+    _renderLiveView(trackState, timingState, posState) {
+      if (!this._liveDom) {
+        this._body.innerHTML = "";
+        const banner = document.createElement("div");
+        const mapWrap = document.createElement("div");
+        mapWrap.className = "trackmap";
+        const tower = document.createElement("div");
+        tower.className = "ltower";
+        this._body.append(banner, mapWrap, tower);
+        this._liveDom = { banner, mapWrap, tower };
+      }
+
       const label = (trackState.attributes && trackState.attributes.label) || trackState.state || "";
       const statusClass = (label || "").toLowerCase().includes("safety") ? "safety"
         : (label || "").toLowerCase().includes("gelb") ? "yellow"
         : (label || "").toLowerCase().includes("rot") ? "red"
         : "green";
+      this._liveDom.banner.className = `live-banner ${statusClass}`;
+      this._liveDom.banner.innerHTML = `
+          <span class="live-dot"></span>
+          <span class="live-label">${label || "Live"}</span>`;
 
+      /* Streckenkarte: nur wenn Positions-Sensor konfiguriert und live */
+      const attrs = posState && posState.attributes;
+      if (attrs && Array.isArray(attrs.positions) && attrs.positions.length) {
+        if (!this._trackMap) this._trackMap = new F1TrackMap(this._liveDom.mapWrap);
+        const flag = attrs.track_status ?? (trackState.attributes && trackState.attributes.status);
+        this._trackMap.update(attrs.positions, attrs.bounds, flag);
+        this._liveDom.mapWrap.style.display = "";
+      } else {
+        this._liveDom.mapWrap.style.display = "none";
+      }
+
+      this._liveDom.tower.innerHTML = this._towerRowsHtml(timingState);
+    }
+
+    _teardownLive() {
+      if (this._trackMap) { this._trackMap.destroy(); this._trackMap = null; }
+      this._liveDom = null;
+    }
+
+    _towerRowsHtml(timingState) {
       const drivers = (timingState && timingState.attributes && timingState.attributes.drivers) || [];
       let rows = "";
       for (const d of drivers) {
@@ -662,13 +699,7 @@
       if (!rows) {
         rows = `<div class="empty">Warte auf Live-Daten\u2026</div>`;
       }
-
-      return `
-        <div class="live-banner ${statusClass}">
-          <span class="live-dot"></span>
-          <span class="live-label">${label || "Live"}</span>
-        </div>
-        <div class="ltower">${rows}</div>`;
+      return rows;
     }
 
     /* --- Streckenlayout-SVG rendern (dezent-elegant) --- */
