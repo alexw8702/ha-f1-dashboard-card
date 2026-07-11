@@ -529,10 +529,16 @@
       if (isLive) {
         this._statusEl.className = `tag active`;
         this._statusEl.textContent = `Live${activeSession ? " \u00b7 " + activeSession : ""}`;
-        this._body.innerHTML = this._renderLive(liveTrackState, liveTimingEntity ? this._hass.states[liveTimingEntity] : null);
+        const posEntity = this._config.live_positions_entity;
+        this._renderLiveView(
+          liveTrackState,
+          liveTimingEntity ? this._hass.states[liveTimingEntity] : null,
+          posEntity ? this._hass.states[posEntity] : null
+        );
         if (this._timer) { clearInterval(this._timer); this._timer = null; }
         return;
       }
+      this._teardownLive(); // Live-Modus verlassen -> Karte und Live-DOM freigeben
 
       if (!next) {
         this._statusEl.className = `tag ${badgeCls}`;
