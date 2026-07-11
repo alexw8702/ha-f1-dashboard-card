@@ -439,6 +439,9 @@ function countryEmoji(nationality) {
     border-left: 1px solid rgba(255, 255, 255, 0.08);
     padding-left: 12px;
   }
+  .overlay-content {
+    max-width: 680px;
+  }
 }
 
 .team-driver-item {
@@ -592,7 +595,8 @@ function countryEmoji(nationality) {
   background: rgba(8, 8, 11, 0);
   pointer-events: none;
   transition: background 0.22s ease;
-  padding: 16px;
+  padding: 5vh 16px;
+  box-sizing: border-box;
 }
 .overlay.open {
   background: rgba(8, 8, 11, 0.75);
@@ -617,6 +621,10 @@ function countryEmoji(nationality) {
   position: relative;
   box-shadow: 0 12px 32px rgba(0, 0, 0, 0.5);
   text-align: left;
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
 }
 .overlay-close {
   position: absolute;
@@ -858,6 +866,10 @@ function countryEmoji(nationality) {
   border-radius: 8px;
   padding: 10px 12px;
   text-align: left;
+  overflow-y: auto;
+  max-height: 180px;
+  flex-shrink: 1;
+  min-height: 0;
 }
 
 @container (max-width: 360px) {
