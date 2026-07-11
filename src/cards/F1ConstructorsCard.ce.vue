@@ -17,6 +17,10 @@ const entity = computed(() =>
 const state = computed(() =>
   props.hass?.states?.[entity.value] ?? null)
 
+const season = computed(() => {
+  return state.value?.attributes?.season || state.value?.attributes?.year || 'current'
+})
+
 const selectedTeam = ref(null)
 const teamLogo = ref('')
 const p2Count = ref(0)
@@ -62,7 +66,8 @@ watch(selectedTeam, async (newVal) => {
   
   if (newVal.teamId) {
     try {
-      const response = await fetch(`https://api.jolpi.ca/ergast/f1/current/constructors/${newVal.teamId}/results.json`)
+      const fetchSeason = season.value || 'current'
+      const response = await fetch(`https://api.jolpi.ca/ergast/f1/${fetchSeason}/constructors/${newVal.teamId}/results.json`)
       if (response.ok) {
         const data = await response.json()
         const races = data.MRData?.RaceTable?.Races || []
@@ -114,9 +119,9 @@ watch(selectedTeam, async (newVal) => {
           })
         }
         
-        // Sort and slice last 3 races
+        // Sort and slice last 5 races
         raceList.sort((a, b) => a.round - b.round)
-        const last3 = raceList.slice(-3).reverse()
+        const last5 = raceList.slice(-5).reverse()
         
         // Fahrer-WM-Positionen und Punkte aus dem Fahrerwertungs-Sensor laden
         const driverStandingsEntity = Object.keys(props.hass?.states || {}).find(
@@ -149,7 +154,7 @@ watch(selectedTeam, async (newVal) => {
         p3Count.value = p3
         teamDrivers.value = driverList
         dnfCount.value = dnfVal
-        lastRaces.value = last3
+        lastRaces.value = last5
       }
     } catch (e) {
       console.error('Fehler beim Abrufen der Team-Ergebnisse:', e)
@@ -249,7 +254,7 @@ function countryEmoji(nationality) {
     <!-- Header -->
     <header class="header">
       <div>
-        <span class="eyebrow">Saison 2026</span>
+        <span class="eyebrow">Saison {{ season === 'current' ? '2026' : season }}</span>
         <h1>Konstrukteurswertung</h1>
         <p class="subtitle">Team-Meisterschaft</p>
       </div>
@@ -321,92 +326,99 @@ function countryEmoji(nationality) {
         <div class="detail-card" :style="{ borderTop: `3px solid ${teamColor(selectedTeam.teamId)}` }">
           <button class="overlay-close" @click="closeDetail" aria-label="Schließen">&times;</button>
           
-          <div class="detail-head">
-            <div class="detail-accent" :style="{ backgroundColor: teamColor(selectedTeam.teamId) }"></div>
-            <div class="detail-head-text">
-              <div class="detail-name">{{ selectedTeam.name }}</div>
-              <div class="detail-team-sub" :style="{ color: teamColor(selectedTeam.teamId) }">
-                {{ selectedTeam.nationality }} {{ countryEmoji(selectedTeam.nationality) }}
+          <!-- Haupt-Details (Linke Spalte auf Desktop) -->
+          <div class="detail-main-col">
+            <div class="detail-head">
+              <div class="detail-accent" :style="{ backgroundColor: teamColor(selectedTeam.teamId) }"></div>
+              <div class="detail-head-text">
+                <div class="detail-name">{{ selectedTeam.name }}</div>
+                <div class="detail-team-sub" :style="{ color: teamColor(selectedTeam.teamId) }">
+                  {{ selectedTeam.nationality }} {{ countryEmoji(selectedTeam.nationality) }}
+                </div>
+              </div>
+              <div class="detail-avatar" v-if="teamLogo">
+                <img :src="teamLogo" :alt="selectedTeam.name" />
               </div>
             </div>
-            <div class="detail-avatar" v-if="teamLogo">
-              <img :src="teamLogo" :alt="selectedTeam.name" />
+
+            <!-- Compact Stats Grid -->
+            <div class="detail-stats-grid">
+              <div class="stat-box">
+                <div class="stat-val">{{ selectedTeam.pos }}.</div>
+                <div class="stat-lbl">WM-Rang</div>
+              </div>
+              <div class="stat-box">
+                <div class="stat-val">{{ selectedTeam.points }}</div>
+                <div class="stat-lbl">Punkte</div>
+              </div>
+              <div class="stat-box">
+                <div class="stat-val podiums-row">
+                  <span class="p-gold" title="Siege (P1)">
+                    <svg class="trophy-icon" viewBox="0 0 24 24"><path d="M18 2H6v1a6 6 0 00-6 6v1c0 2.2 1.3 4.1 3.2 4.9.8 1.6 2.3 2.8 4.2 3.1V20H5v2h14v-2h-2.4v-2c1.9-.3 3.4-1.5 4.2-3.1 1.9-.8 3.2-2.7 3.2-4.9V9a6 6 0 00-6-6V2zM2 9a4 4 0 014-4v6a4 4 0 01-4-4zm16 2V5a4 4 0 014 4v2a4 4 0 01-4-4z"/></svg>
+                    {{ selectedTeam.wins }}
+                  </span>
+                  <span class="p-silver" title="2. Plätze (P2)">
+                    <svg class="trophy-icon" viewBox="0 0 24 24"><path d="M18 2H6v1a6 6 0 00-6 6v1c0 2.2 1.3 4.1 3.2 4.9.8 1.6 2.3 2.8 4.2 3.1V20H5v2h14v-2h-2.4v-2c1.9-.3 3.4-1.5 4.2-3.1 1.9-.8 3.2-2.7 3.2-4.9V9a6 6 0 00-6-6V2zM2 9a4 4 0 014-4v6a4 4 0 01-4-4zm16 2V5a4 4 0 014 4v2a4 4 0 01-4-4z"/></svg>
+                    {{ p2Count }}
+                  </span>
+                  <span class="p-bronze" title="3. Plätze (P3)">
+                    <svg class="trophy-icon" viewBox="0 0 24 24"><path d="M18 2H6v1a6 6 0 00-6 6v1c0 2.2 1.3 4.1 3.2 4.9.8 1.6 2.3 2.8 4.2 3.1V20H5v2h14v-2h-2.4v-2c1.9-.3 3.4-1.5 4.2-3.1 1.9-.8 3.2-2.7 3.2-4.9V9a6 6 0 00-6-6V2zM2 9a4 4 0 014-4v6a4 4 0 01-4-4zm16 2V5a4 4 0 014 4v2a4 4 0 01-4-4z"/></svg>
+                    {{ p3Count }}
+                  </span>
+                </div>
+                <div class="stat-lbl">Podestplätze</div>
+              </div>
             </div>
+            
+            <p class="detail-extract" v-if="wikiSummary">{{ wikiSummary }}</p>
+            
+            <a v-if="selectedTeam.url" class="wiki-link" :href="selectedTeam.url" target="_blank" rel="noopener noreferrer">
+              Wikipedia-Artikel &rarr;
+            </a>
           </div>
 
-          <!-- Compact Stats Grid -->
-          <div class="detail-stats-grid">
-            <div class="stat-box">
-              <div class="stat-val">{{ selectedTeam.pos }}.</div>
-              <div class="stat-lbl">WM-Rang</div>
-            </div>
-            <div class="stat-box">
-              <div class="stat-val">{{ selectedTeam.points }}</div>
-              <div class="stat-lbl">Punkte</div>
-            </div>
-            <div class="stat-box">
-              <div class="stat-val podiums-row">
-                <span class="p-gold" title="Siege (P1)">
-                  <svg class="trophy-icon" viewBox="0 0 24 24"><path d="M18 2H6v1a6 6 0 00-6 6v1c0 2.2 1.3 4.1 3.2 4.9.8 1.6 2.3 2.8 4.2 3.1V20H5v2h14v-2h-2.4v-2c1.9-.3 3.4-1.5 4.2-3.1 1.9-.8 3.2-2.7 3.2-4.9V9a6 6 0 00-6-6V2zM2 9a4 4 0 014-4v6a4 4 0 01-4-4zm16 2V5a4 4 0 014 4v2a4 4 0 01-4-4z"/></svg>
-                  {{ selectedTeam.wins }}
-                </span>
-                <span class="p-silver" title="2. Plätze (P2)">
-                  <svg class="trophy-icon" viewBox="0 0 24 24"><path d="M18 2H6v1a6 6 0 00-6 6v1c0 2.2 1.3 4.1 3.2 4.9.8 1.6 2.3 2.8 4.2 3.1V20H5v2h14v-2h-2.4v-2c1.9-.3 3.4-1.5 4.2-3.1 1.9-.8 3.2-2.7 3.2-4.9V9a6 6 0 00-6-6V2zM2 9a4 4 0 014-4v6a4 4 0 01-4-4zm16 2V5a4 4 0 014 4v2a4 4 0 01-4-4z"/></svg>
-                  {{ p2Count }}
-                </span>
-                <span class="p-bronze" title="3. Plätze (P3)">
-                  <svg class="trophy-icon" viewBox="0 0 24 24"><path d="M18 2H6v1a6 6 0 00-6 6v1c0 2.2 1.3 4.1 3.2 4.9.8 1.6 2.3 2.8 4.2 3.1V20H5v2h14v-2h-2.4v-2c1.9-.3 3.4-1.5 4.2-3.1 1.9-.8 3.2-2.7 3.2-4.9V9a6 6 0 00-6-6V2zM2 9a4 4 0 014-4v6a4 4 0 01-4-4zm16 2V5a4 4 0 014 4v2a4 4 0 01-4-4z"/></svg>
-                  {{ p3Count }}
-                </span>
-              </div>
-              <div class="stat-lbl">Podestplätze</div>
-            </div>
-          </div>
-          <!-- Drivers Championship Section (Right column on desktop) -->
-          <div class="detail-drivers-section" v-if="teamDrivers.length">
-            <div class="section-title">Fahrer</div>
-            <div class="drivers-list">
-              <div v-for="drv in teamDrivers" :key="drv.id" class="driver-item-row">
-                <span class="driver-badge-pos" :style="{ backgroundColor: teamColor(selectedTeam.teamId) }">
-                  {{ drv.pos }}.
-                </span>
-                <span class="driver-item-name-col">
-                  {{ drv.name }} <span class="driver-item-code-label">({{ drv.code }})</span>
-                </span>
-                <span class="driver-item-points-col">{{ drv.points }} <span class="pts-label">PKT</span></span>
+          <!-- Sidebar (Rechte Spalte auf Desktop) -->
+          <div class="detail-sidebar-col">
+            <!-- Drivers Championship Section -->
+            <div class="detail-drivers-section" v-if="teamDrivers.length">
+              <div class="section-title">Fahrer</div>
+              <div class="drivers-list">
+                <div v-for="drv in teamDrivers" :key="drv.id" class="driver-item-row">
+                  <span class="driver-badge-pos" :style="{ backgroundColor: teamColor(selectedTeam.teamId) }">
+                    {{ drv.pos }}.
+                  </span>
+                  <span class="driver-item-name-col">
+                    {{ drv.name }} <span class="driver-item-code-label">({{ drv.code }})</span>
+                  </span>
+                  <span class="driver-item-points-col">{{ drv.points }} <span class="pts-label">PKT</span></span>
+                </div>
               </div>
             </div>
-          </div>
 
-          <!-- Team History Section (Season 2026) -->
-          <div class="team-history-section" v-if="lastRaces.length">
-            <div class="section-title">Team-Historie (Saison 2026)</div>
-            <div class="history-grid">
-              <div class="history-stat">
-                <span class="history-lbl">Saison-Ausfälle (DNFs):</span>
-                <span class="history-val dnf-count" :class="{ 'has-dnfs': dnfCount > 0 }">{{ dnfCount }}</span>
-              </div>
-              <div class="history-races">
-                <span class="history-lbl">Letzte 3 Rennen:</span>
-                <div class="history-races-list">
-                  <div v-for="r in lastRaces" :key="r.round" class="history-race-row">
-                    <span class="race-name">{{ r.name }}</span>
-                    <div class="race-results-badges">
-                      <span v-for="(pos, idx) in r.positions" :key="idx" class="mini-pos-badge" :class="getPosClass(pos)">
-                        {{ pos === 'R' ? 'DNF' : 'P' + pos }}
-                      </span>
+            <!-- Team History Section (Season 2026) -->
+            <div class="team-history-section" v-if="lastRaces.length">
+              <div class="section-title">Team-Historie (Saison {{ season === 'current' ? '2026' : season }})</div>
+              <div class="history-grid">
+                <div class="history-stat">
+                  <span class="history-lbl">Saison-Ausfälle (DNFs):</span>
+                  <span class="history-val dnf-count" :class="{ 'has-dnfs': dnfCount > 0 }">{{ dnfCount }}</span>
+                </div>
+                <div class="history-races">
+                  <span class="history-lbl">Letzte 5 Rennen:</span>
+                  <div class="history-races-list">
+                    <div v-for="r in lastRaces" :key="r.round" class="history-race-row">
+                      <span class="race-name">{{ r.name }}</span>
+                      <div class="race-results-badges">
+                        <span v-for="(pos, idx) in r.positions" :key="idx" class="mini-pos-badge" :class="getPosClass(pos)">
+                          {{ pos === 'R' ? 'DNF' : 'P' + pos }}
+                        </span>
+                      </div>
                     </div>
                   </div>
                 </div>
               </div>
             </div>
           </div>
-          
-          <p class="detail-extract" v-if="wikiSummary">{{ wikiSummary }}</p>
-          
-          <a v-if="selectedTeam.url" class="wiki-link" :href="selectedTeam.url" target="_blank" rel="noopener noreferrer">
-            Wikipedia-Artikel &rarr;
-          </a>
         </div>
       </div>
     </div>
@@ -1015,41 +1027,40 @@ function countryEmoji(nationality) {
   }
   .detail-card {
     display: grid;
-    grid-template-columns: 1fr 240px; /* Swapped columns: main info left, drivers list right */
+    grid-template-columns: 1fr 240px; /* Left column: 1fr, Right column: 240px */
     column-gap: 24px;
-    row-gap: 8px;
+    align-items: start;
   }
-  .detail-head {
-    grid-column: 1;
-    grid-row: 1;
-    margin-bottom: 0;
+  .detail-main-col {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    min-width: 0;
   }
-  .detail-stats-grid {
-    grid-column: 1;
-    grid-row: 2;
-    margin-bottom: 0;
-  }
-  .detail-extract {
-    grid-column: 1;
-    grid-row: 3;
-    margin-top: 0;
-    margin-bottom: 0;
+  .detail-sidebar-col {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    min-width: 0;
   }
   .team-history-section {
     display: block;
-    grid-column: 2;
-    grid-row: 2;
+    padding-top: 0;
+  }
+  .detail-head {
+    margin-bottom: 0;
+  }
+  .detail-stats-grid {
+    margin-bottom: 0;
+  }
+  .detail-extract {
     margin-top: 0;
-    padding-top: 8px;
+    margin-bottom: 0;
   }
   .wiki-link {
-    grid-column: 1;
-    grid-row: 4;
     margin-top: 0;
   }
   .detail-drivers-section {
-    grid-column: 2;
-    grid-row: 1;
     margin-bottom: 0;
   }
 }

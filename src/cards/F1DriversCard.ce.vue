@@ -17,6 +17,10 @@ const entity = computed(() =>
 const state = computed(() =>
   props.hass?.states?.[entity.value] ?? null)
 
+const season = computed(() => {
+  return state.value?.attributes?.season || state.value?.attributes?.year || 'current'
+})
+
 const selectedDriver = ref(null)
 const driverImage = ref('')
 const p2Count = ref(0)
@@ -60,7 +64,8 @@ watch(selectedDriver, async (newVal) => {
   
   if (newVal.driverId) {
     try {
-      const response = await fetch(`https://api.jolpi.ca/ergast/f1/current/drivers/${newVal.driverId}/results.json`)
+      const fetchSeason = season.value || 'current'
+      const response = await fetch(`https://api.jolpi.ca/ergast/f1/${fetchSeason}/drivers/${newVal.driverId}/results.json`)
       if (response.ok) {
         const data = await response.json()
         const races = data.MRData?.RaceTable?.Races || []
@@ -96,7 +101,8 @@ watch(selectedDriver, async (newVal) => {
     }
 
     try {
-      const response = await fetch(`https://api.jolpi.ca/ergast/f1/current/drivers/${newVal.driverId}/qualifying.json`)
+      const fetchSeason = season.value || 'current'
+      const response = await fetch(`https://api.jolpi.ca/ergast/f1/${fetchSeason}/drivers/${newVal.driverId}/qualifying.json`)
       if (response.ok) {
         const data = await response.json()
         const races = data.MRData?.RaceTable?.Races || []
@@ -215,7 +221,7 @@ function getPosClass(pos) {
     <!-- Header -->
     <header class="header">
       <div>
-        <span class="eyebrow">Saison 2026</span>
+        <span class="eyebrow">Saison {{ season === 'current' ? '2026' : season }}</span>
         <h1>Fahrerwertung</h1>
         <p class="subtitle">Weltmeisterschaft</p>
       </div>
@@ -352,9 +358,9 @@ function getPosClass(pos) {
           
           <p class="detail-extract" v-if="wikiSummary">{{ wikiSummary }}</p>
 
-          <!-- Recent Results (Saison 2026) -->
+          <!-- Recent Results -->
           <div class="recent-results-section" v-if="recentResults.length || recentQualifying.length">
-            <h3 class="recent-results-title">Letzte Ergebnisse (Saison 2026)</h3>
+            <h3 class="recent-results-title">Letzte Ergebnisse (Saison {{ season === 'current' ? '2026' : season }})</h3>
             <div class="recent-results-grid">
               <!-- Qualifying -->
               <div class="results-col" v-if="recentQualifying.length">
