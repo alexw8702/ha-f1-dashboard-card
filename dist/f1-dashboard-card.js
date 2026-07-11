@@ -503,7 +503,10 @@
     }
     set hass(hass) { this._hass = hass; this._render(); }
     getCardSize() { return 8; }
-    disconnectedCallback() { if (this._timer) clearInterval(this._timer); }
+    disconnectedCallback() {
+      if (this._timer) clearInterval(this._timer);
+      this._teardownLive();
+    }
 
     _render() {
       if (!this._hass || !this._config) return;
