@@ -245,8 +245,9 @@ function countryEmoji(nationality) {
           </div>
           <div class="stats-sub">
             <span class="diff" v-if="team.diff > 0">-{{ team.diff }}</span>
-            <span class="sub-sep" v-if="team.diff > 0 && team.wins > 0">•</span>
+            <span class="diff-placeholder" v-else></span>
             <span class="wins" v-if="team.wins > 0">🏆 {{ team.wins }}</span>
+            <span class="wins-placeholder" v-else></span>
           </div>
         </div>
 
@@ -529,7 +530,7 @@ function countryEmoji(nationality) {
   flex-direction: column;
   align-items: flex-end;
   justify-content: center;
-  width: 80px;
+  width: 90px;
   justify-self: end;
 }
 .points-row {
@@ -539,29 +540,38 @@ function countryEmoji(nationality) {
   line-height: 1.2;
 }
 .points {
-  font-size: 15px; font-weight: 700;
+  font-size: 16px; font-weight: 700;
 }
 .pts-unit {
-  font-size: 9px; font-weight: 500; color: var(--text-dim);
+  font-size: 10px; font-weight: 500; color: var(--text-dim);
 }
 .stats-sub {
   display: flex;
   align-items: center;
+  justify-content: flex-end;
   gap: 4px;
-  font-size: 10.5px; color: var(--text-dim);
-  line-height: 1.2;
-  margin-top: 1px;
-  height: 14px;
+  width: 100%;
+  height: 16px;
+  margin-top: 2px;
+}
+.diff, .diff-placeholder {
+  width: 44px;
+  text-align: right;
+  flex-shrink: 0;
+  display: inline-block;
 }
 .diff {
-  color: var(--text-dim);
+  font-size: 13px; font-weight: 600; color: var(--text-dim);
+}
+.wins, .wins-placeholder {
+  width: 38px;
+  text-align: right;
+  flex-shrink: 0;
+  display: inline-block;
 }
 .wins {
   color: #ffd700;
-  font-size: 10px;
-}
-.sub-sep {
-  color: rgba(255, 255, 255, 0.2);
+  font-size: 11px;
 }
 
 .foot {
@@ -852,6 +862,10 @@ function countryEmoji(nationality) {
 
 @container (max-width: 360px) {
   .team-info { width: 90px; }
-  .team-stats { width: 60px; }
+  .team-stats { width: 70px; }
+  .team-stats .points { font-size: 14px; }
+  .team-stats .pts-unit { font-size: 9px; }
+  .team-stats .diff, .team-stats .diff-placeholder { width: 34px; font-size: 11.5px; }
+  .team-stats .wins, .team-stats .wins-placeholder { width: 30px; font-size: 10px; }
 }
 </style>

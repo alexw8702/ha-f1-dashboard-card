@@ -209,8 +209,9 @@ function countryEmoji(nationality) {
           </div>
           <div class="stats-sub">
             <span class="diff" v-if="driver.diff > 0">-{{ driver.diff }}</span>
-            <span class="sub-sep" v-if="driver.diff > 0 && driver.wins > 0">•</span>
+            <span class="diff-placeholder" v-else></span>
             <span class="wins" v-if="driver.wins > 0">🏆 {{ driver.wins }}</span>
+            <span class="wins-placeholder" v-else></span>
           </div>
         </div>
       </div>
@@ -436,7 +437,7 @@ function countryEmoji(nationality) {
   flex-direction: column;
   align-items: flex-end;
   justify-content: center;
-  width: 80px;
+  width: 90px;
 }
 .points-row {
   display: flex;
@@ -445,29 +446,38 @@ function countryEmoji(nationality) {
   line-height: 1.2;
 }
 .points {
-  font-size: 14px; font-weight: 700;
+  font-size: 15px; font-weight: 700;
 }
 .pts-unit {
-  font-size: 9px; font-weight: 500; color: var(--text-dim);
+  font-size: 9.5px; font-weight: 500; color: var(--text-dim);
 }
 .stats-sub {
   display: flex;
   align-items: center;
+  justify-content: flex-end;
   gap: 4px;
-  font-size: 10.5px; color: var(--text-dim);
-  line-height: 1.2;
-  margin-top: 1px;
-  height: 14px;
+  width: 100%;
+  height: 16px;
+  margin-top: 2px;
+}
+.diff, .diff-placeholder {
+  width: 44px;
+  text-align: right;
+  flex-shrink: 0;
+  display: inline-block;
 }
 .diff {
-  color: var(--text-dim);
+  font-size: 12.5px; font-weight: 600; color: var(--text-dim);
+}
+.wins, .wins-placeholder {
+  width: 38px;
+  text-align: right;
+  flex-shrink: 0;
+  display: inline-block;
 }
 .wins {
   color: #ffd700;
-  font-size: 10px;
-}
-.sub-sep {
-  color: rgba(255, 255, 255, 0.2);
+  font-size: 11px;
 }
 
 /* ---------- Footer ---------- */
@@ -698,6 +708,10 @@ function countryEmoji(nationality) {
 @container (max-width: 360px) {
   .driver-info { width: 100px; }
   .name { font-size: 12px; }
-  .driver-stats { width: 60px; }
+  .driver-stats { width: 70px; }
+  .driver-stats .points { font-size: 13px; }
+  .driver-stats .pts-unit { font-size: 8.5px; }
+  .driver-stats .diff, .driver-stats .diff-placeholder { width: 34px; font-size: 11px; }
+  .driver-stats .wins, .driver-stats .wins-placeholder { width: 30px; font-size: 10px; }
 }
 </style>
