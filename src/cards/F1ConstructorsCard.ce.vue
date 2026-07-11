@@ -441,48 +441,6 @@ function countryEmoji(nationality) {
   }
 }
 
-@media (min-width: 600px) {
-  .overlay-content {
-    max-width: 680px;
-  }
-  .detail-card {
-    display: grid;
-    grid-template-columns: 240px 1fr;
-    column-gap: 24px;
-    row-gap: 8px;
-  }
-  .detail-head {
-    grid-column: 2;
-    grid-row: 1;
-    margin-bottom: 0;
-  }
-  .detail-stats-grid {
-    grid-column: 2;
-    grid-row: 2;
-    margin-bottom: 0;
-  }
-  .detail-drivers-section {
-    grid-column: 1;
-    grid-row: 1 / span 3;
-    margin-bottom: 0;
-  }
-  .detail-rows {
-    grid-column: 1;
-    grid-row: 4;
-    margin-bottom: 0;
-  }
-  .detail-extract {
-    grid-column: 2;
-    grid-row: 3;
-    margin-top: 0;
-    margin-bottom: 0;
-  }
-  .wiki-link {
-    grid-column: 2;
-    grid-row: 4;
-    margin-top: 0;
-  }
-}
 
 .team-driver-item {
   display: flex;
@@ -919,5 +877,48 @@ function countryEmoji(nationality) {
   .team-stats .pts-unit { font-size: 9px; }
   .team-stats .diff, .team-stats .diff-placeholder { width: 34px; font-size: 11.5px; }
   .team-stats .wins, .team-stats .wins-placeholder { width: 30px; font-size: 10px; }
+}
+
+@media (min-width: 600px) {
+  .overlay-content {
+    max-width: 680px;
+  }
+  .detail-card {
+    display: grid;
+    grid-template-columns: 240px 1fr;
+    column-gap: 24px;
+    row-gap: 8px;
+  }
+  .detail-head {
+    grid-column: 2;
+    grid-row: 1;
+    margin-bottom: 0;
+  }
+  .detail-stats-grid {
+    grid-column: 2;
+    grid-row: 2;
+    margin-bottom: 0;
+  }
+  .detail-drivers-section {
+    grid-column: 1;
+    grid-row: 1 / span 3;
+    margin-bottom: 0;
+  }
+  .detail-rows {
+    grid-column: 1;
+    grid-row: 4;
+    margin-bottom: 0;
+  }
+  .detail-extract {
+    grid-column: 2;
+    grid-row: 3;
+    margin-top: 0;
+    margin-bottom: 0;
+  }
+  .wiki-link {
+    grid-column: 2;
+    grid-row: 4;
+    margin-top: 0;
+  }
 }
 </style>

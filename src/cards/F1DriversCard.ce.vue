@@ -451,74 +451,6 @@ function getPosClass(pos) {
   }
 }
 
-@media (min-width: 600px) {
-  .overlay-content {
-    max-width: 680px;
-  }
-  .detail-card {
-    display: grid;
-    grid-template-columns: 210px 1fr;
-    column-gap: 24px;
-    row-gap: 8px;
-  }
-  .detail-avatar-rectangular {
-    display: block;
-    grid-column: 1;
-    grid-row: 1 / span 2;
-    width: 100%;
-    aspect-ratio: 3/4;
-    border-radius: 12px;
-    overflow: hidden;
-    border: 2px solid var(--panel-border);
-    margin-bottom: 8px;
-  }
-  .detail-avatar-rectangular img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    object-position: top center;
-  }
-  .detail-avatar-circle {
-    display: none;
-  }
-  .detail-head {
-    grid-column: 2;
-    grid-row: 1;
-    margin-bottom: 0;
-  }
-  .detail-stats-grid {
-    grid-column: 2;
-    grid-row: 2;
-    margin-bottom: 0;
-  }
-  .detail-rows {
-    grid-column: 1;
-    grid-row: 3 / span 3;
-    margin-bottom: 0;
-  }
-  .detail-extract {
-    grid-column: 2;
-    grid-row: 3;
-    margin-top: 0;
-    margin-bottom: 0;
-  }
-  .recent-results-section {
-    display: block;
-    grid-column: 2;
-    grid-row: 4;
-    margin-top: 0;
-    padding-top: 8px;
-  }
-  .recent-results-grid {
-    grid-template-columns: 1fr 1fr;
-    gap: 16px;
-  }
-  .wiki-link {
-    grid-column: 2;
-    grid-row: 5;
-    margin-top: 0;
-  }
-}
 
 .driver-row {
   display: flex; align-items: center; gap: 12px;
@@ -936,5 +868,74 @@ function getPosClass(pos) {
   .driver-stats .pts-unit { font-size: 8.5px; }
   .driver-stats .diff, .driver-stats .diff-placeholder { width: 34px; font-size: 11px; }
   .driver-stats .wins, .driver-stats .wins-placeholder { width: 30px; font-size: 10px; }
+}
+
+@media (min-width: 600px) {
+  .overlay-content {
+    max-width: 680px;
+  }
+  .detail-card {
+    display: grid;
+    grid-template-columns: 210px 1fr;
+    column-gap: 24px;
+    row-gap: 8px;
+  }
+  .detail-avatar-rectangular {
+    display: block;
+    grid-column: 1;
+    grid-row: 1 / span 2;
+    width: 100%;
+    aspect-ratio: 3/4;
+    border-radius: 12px;
+    overflow: hidden;
+    border: 2px solid var(--panel-border);
+    margin-bottom: 8px;
+  }
+  .detail-avatar-rectangular img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: top center;
+  }
+  .detail-avatar-circle {
+    display: none;
+  }
+  .detail-head {
+    grid-column: 2;
+    grid-row: 1;
+    margin-bottom: 0;
+  }
+  .detail-stats-grid {
+    grid-column: 2;
+    grid-row: 2;
+    margin-bottom: 0;
+  }
+  .detail-rows {
+    grid-column: 1;
+    grid-row: 3 / span 3;
+    margin-bottom: 0;
+  }
+  .detail-extract {
+    grid-column: 2;
+    grid-row: 3;
+    margin-top: 0;
+    margin-bottom: 0;
+  }
+  .recent-results-section {
+    display: block;
+    grid-column: 2;
+    grid-row: 4;
+    margin-top: 0;
+    padding-top: 8px;
+  }
+  .recent-results-grid {
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+  }
+  .wiki-link {
+    grid-column: 2;
+    grid-row: 5;
+    margin-top: 0;
+  }
 }
 </style>
