@@ -362,14 +362,6 @@ function countryEmoji(nationality) {
               <div class="stat-lbl">Podestplätze</div>
             </div>
           </div>
-          
-          <div class="detail-rows">
-            <div class="drow" v-if="selectedTeam.nationality">
-              <span class="dk">Herkunft</span>
-              <span class="dv">{{ selectedTeam.nationality }} {{ countryEmoji(selectedTeam.nationality) }}</span>
-            </div>
-          </div>
-
           <!-- Drivers Championship Section (Right column on desktop) -->
           <div class="detail-drivers-section" v-if="teamDrivers.length">
             <div class="section-title">Fahrer</div>
@@ -385,8 +377,6 @@ function countryEmoji(nationality) {
               </div>
             </div>
           </div>
-          
-          <p class="detail-extract" v-if="wikiSummary">{{ wikiSummary }}</p>
 
           <!-- Team History Section (Season 2026) -->
           <div class="team-history-section" v-if="lastRaces.length">
@@ -411,6 +401,8 @@ function countryEmoji(nationality) {
               </div>
             </div>
           </div>
+          
+          <p class="detail-extract" v-if="wikiSummary">{{ wikiSummary }}</p>
           
           <a v-if="selectedTeam.url" class="wiki-link" :href="selectedTeam.url" target="_blank" rel="noopener noreferrer">
             Wikipedia-Artikel &rarr;
@@ -1037,32 +1029,27 @@ function countryEmoji(nationality) {
     grid-row: 2;
     margin-bottom: 0;
   }
-  .detail-rows {
-    grid-column: 1;
-    grid-row: 3;
-    margin-bottom: 0;
-  }
   .detail-extract {
     grid-column: 1;
-    grid-row: 4;
+    grid-row: 3;
     margin-top: 0;
     margin-bottom: 0;
   }
   .team-history-section {
     display: block;
-    grid-column: 1;
-    grid-row: 5;
+    grid-column: 2;
+    grid-row: 2;
     margin-top: 0;
     padding-top: 8px;
   }
   .wiki-link {
     grid-column: 1;
-    grid-row: 6;
+    grid-row: 4;
     margin-top: 0;
   }
   .detail-drivers-section {
     grid-column: 2;
-    grid-row: 1 / span 6;
+    grid-row: 1;
     margin-bottom: 0;
   }
 }
