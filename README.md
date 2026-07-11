@@ -6,7 +6,7 @@
 
 ![F1 Dashboard Banner](images/banner.jpg)
 
-Vier eigenständige, dunkeldesignte Custom Cards für ein **Formel-1-Dashboard** in Home Assistant. **v0.4.1** bringt ein komplettes **Redesign der Rennwochenende-Karte** sowie einen Wechsel der Codebasis auf **Vue 3** (Single-File-Components, `.ce.vue`) für schnellere Entwicklung und einfacheres Styling.
+Vier eigenständige, dunkeldesignte Custom Cards für ein **Formel-1-Dashboard** in Home Assistant. **v0.4.2** bringt ein komplettes **Redesign der Rennwochenende-Karte** sowie einen Wechsel der Codebasis auf **Vue 3** (Single-File-Components, `.ce.vue`) für schnellere Entwicklung und einfacheres Styling.
 
 | Karte | Element | Zeigt |
 |-------|---------|-------|
@@ -188,6 +188,12 @@ cards:
 ---
 
 ## Changelog
+
+### v0.4.2
+- ✨ **Feature (Fahrer-Details & Bilder)**:
+  * Durch Klicken auf eine Fahrerzeile in der Fahrerwertung (`f1-drivers-card`) öffnet sich nun eine interaktive Detail-Karte (Overlay) im Carbon-Design.
+  * Zeigt Geburtsdatum, Alter (dynamisch berechnet), Startnummer, Nationalität und Wikipedia-Link des Fahrers an.
+  * **Dynamische Fahrerbilder**: Lädt automatisch ein offizielles Porträtfoto des Fahrers live aus Wikipedia via REST API (keine zusätzlichen Sensoren im Backend notwendig).
 
 ### v0.4.1
 - 🔧 **Bugfix (Rennrückblick-Header)**: 

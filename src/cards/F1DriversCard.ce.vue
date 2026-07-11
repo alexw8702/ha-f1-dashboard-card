@@ -3,7 +3,7 @@
  * F1 Drivers Card (v0.4.0) — Fahrerwertung
  * Design: Carbon-Dark, Ranking-Liste mit Teamfarben, Fortschrittsbalken, Punkte-Differenzen
  */
-import { computed } from 'vue'
+import { computed, ref, watch } from 'vue'
 import { TEAM_COLORS } from '../data/teams.js'
 
 const props = defineProps({
@@ -16,6 +16,32 @@ const entity = computed(() =>
 
 const state = computed(() =>
   props.hass?.states?.[entity.value] ?? null)
+
+const selectedDriver = ref(null)
+const driverImage = ref('')
+
+watch(selectedDriver, async (newVal) => {
+  driverImage.value = ''
+  if (!newVal || !newVal.url) return
+  
+  try {
+    const urlObj = new URL(newVal.url)
+    const hostParts = urlObj.hostname.split('.')
+    const lang = hostParts[0] || 'de'
+    const pathParts = urlObj.pathname.split('/')
+    const title = pathParts[pathParts.length - 1]
+    
+    if (title) {
+      const response = await fetch(`https://${lang}.wikipedia.org/api/rest_v1/page/summary/${title}`)
+      if (response.ok) {
+        const data = await response.json()
+        driverImage.value = data.thumbnail?.source || data.originalimage?.source || ''
+      }
+    }
+  } catch (e) {
+    console.error('Fehler beim Abrufen des Fahrerbildes:', e)
+  }
+})
 
 const drivers = computed(() => {
   const attrs = state.value?.attributes ?? {}
@@ -34,8 +60,35 @@ const drivers = computed(() => {
       wins: d.wins || 0,
       diff: i === 0 ? 0 : (raw[0]?.points || 0) - (d.points || 0),
       nationality: d.nationality || '',
+      permanentNumber: d.permanentNumber || '',
+      dateOfBirth: d.dateOfBirth || '',
+      url: d.url || '',
     }))
 })
+
+function selectDriver(driver) {
+  selectedDriver.value = driver
+}
+
+function closeDetail() {
+  selectedDriver.value = null
+}
+
+function formatDate(dobStr) {
+  const d = new Date(dobStr)
+  if (isNaN(d.getTime())) return dobStr
+  return d.toLocaleDateString("de-DE", { day: "2-digit", month: "2-digit", year: "numeric" })
+}
+
+function calcAge(dobStr) {
+  const dob = new Date(dobStr)
+  if (isNaN(dob.getTime())) return null
+  const now = new Date()
+  let age = now.getFullYear() - dob.getFullYear()
+  const m = now.getMonth() - dob.getMonth()
+  if (m < 0 || (m === 0 && now.getDate() < dob.getDate())) age--
+  return age
+}
 
 const maxPoints = computed(() => drivers.value[0]?.points || 1)
 
@@ -76,7 +129,7 @@ function countryEmoji(nationality) {
 
     <!-- Rankings -->
     <div v-else class="rankings">
-      <div v-for="driver in drivers" :key="driver.pos" class="driver-row">
+      <div v-for="driver in drivers" :key="driver.pos" class="driver-row" @click="selectDriver(driver)">
         <!-- Position + Name -->
         <div class="driver-info">
           <span class="position" :class="{ podium: driver.pos <= 3 }">{{ driver.pos }}</span>
@@ -114,6 +167,63 @@ function countryEmoji(nationality) {
     <footer class="foot">
       {{ drivers.length }} Fahrer | Aktualisiert: {{ state?.last_updated?.slice(11, 16) || '–' }}
     </footer>
+
+    <!-- Overlay/Detail-Card -->
+    <div class="overlay" :class="{ open: selectedDriver }" @click="closeDetail">
+      <div class="overlay-content" @click.stop v-if="selectedDriver">
+        <div class="detail-card" :style="{ borderTop: `3px solid ${teamColor(selectedDriver.teamId)}` }">
+          <button class="overlay-close" @click="closeDetail" aria-label="Schließen">&times;</button>
+          
+          <div class="detail-head">
+            <div class="detail-accent" :style="{ backgroundColor: teamColor(selectedDriver.teamId) }"></div>
+            <div class="detail-head-text">
+              <div class="detail-name">{{ selectedDriver.name }}</div>
+              <div class="detail-team-sub" :style="{ color: teamColor(selectedDriver.teamId) }">
+                {{ selectedDriver.team }}
+              </div>
+            </div>
+            <div class="detail-avatar" v-if="driverImage">
+              <img :src="driverImage" :alt="selectedDriver.name" />
+            </div>
+          </div>
+          
+          <div class="detail-rows">
+            <div class="drow" v-if="selectedDriver.permanentNumber">
+              <span class="dk">Startnummer</span>
+              <span class="dv">#{{ selectedDriver.permanentNumber }}</span>
+            </div>
+            <div class="drow" v-if="selectedDriver.nationality">
+              <span class="dk">Nationalität</span>
+              <span class="dv">{{ selectedDriver.nationality }} {{ countryEmoji(selectedDriver.nationality) }}</span>
+            </div>
+            <div class="drow" v-if="selectedDriver.dateOfBirth">
+              <span class="dk">Geburtsdatum</span>
+              <span class="dv">{{ formatDate(selectedDriver.dateOfBirth) }} ({{ calcAge(selectedDriver.dateOfBirth) }} Jahre)</span>
+            </div>
+            <div class="drow" v-if="selectedDriver.team">
+              <span class="dk">Team</span>
+              <span class="dv" :style="{ color: teamColor(selectedDriver.teamId) }">{{ selectedDriver.team }}</span>
+            </div>
+            <div class="drow">
+              <span class="dk">Position</span>
+              <span class="dv">{{ selectedDriver.pos }}.</span>
+            </div>
+            <div class="drow">
+              <span class="dk">Punkte</span>
+              <span class="dv">{{ selectedDriver.points }}</span>
+            </div>
+            <div class="drow" v-if="selectedDriver.wins > 0">
+              <span class="dk">Siege</span>
+              <span class="dv">🏆 {{ selectedDriver.wins }}</span>
+            </div>
+          </div>
+          
+          <a v-if="selectedDriver.url" class="wiki-link" :href="selectedDriver.url" target="_blank" rel="noopener noreferrer">
+            Wikipedia-Artikel &rarr;
+          </a>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -181,6 +291,11 @@ function countryEmoji(nationality) {
   border: 1px solid var(--panel-border);
   border-radius: 10px;
   padding: 10px 12px;
+  cursor: pointer;
+  transition: background 0.18s ease;
+}
+.driver-row:hover {
+  background: rgba(255, 255, 255, 0.06);
 }
 
 /* Position */
@@ -259,6 +374,148 @@ function countryEmoji(nationality) {
   margin-top: 16px; text-align: center;
   font-size: 9.5px; color: var(--text-dim);
   letter-spacing: 0.12em; text-transform: uppercase;
+}
+
+/* ---------- Overlay / Detail Card ---------- */
+.overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 10;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  background: rgba(8, 8, 11, 0);
+  pointer-events: none;
+  transition: background 0.22s ease;
+  border-radius: 16px;
+  overflow: hidden;
+}
+.overlay.open {
+  background: rgba(8, 8, 11, 0.75);
+  pointer-events: auto;
+}
+.overlay-content {
+  width: 100%;
+  transform: translateY(100%);
+  transition: transform 0.28s cubic-bezier(0.32, 0.72, 0, 1);
+}
+.overlay.open .overlay-content {
+  transform: translateY(0);
+}
+.detail-card {
+  background: linear-gradient(160deg, #1c1c25 0%, #232330 100%);
+  border-radius: 16px 16px 0 0;
+  padding: 20px 18px 22px;
+  position: relative;
+  box-shadow: 0 -8px 24px rgba(0, 0, 0, 0.4);
+}
+.overlay-close {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: none;
+  background: rgba(255, 255, 255, 0.08);
+  color: #c9cdd4;
+  font-size: 1.1rem;
+  line-height: 1;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.overlay-close:hover {
+  background: rgba(255, 255, 255, 0.15);
+}
+.detail-head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 14px;
+  padding-right: 30px;
+}
+.detail-head-text {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.detail-accent {
+  width: 5px;
+  height: 40px;
+  border-radius: 4px;
+  flex: none;
+}
+.detail-name {
+  font-size: 18px;
+  font-weight: 800;
+  line-height: 1.2;
+}
+.detail-team-sub {
+  font-size: 12px;
+  font-weight: 600;
+  opacity: 0.9;
+  letter-spacing: 0.02em;
+}
+.detail-avatar {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  overflow: hidden;
+  border: 2px solid var(--panel-border);
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--bg);
+}
+.detail-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: top center;
+}
+.detail-rows {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  margin-bottom: 14px;
+}
+.drow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 2px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  font-size: 13px;
+}
+.drow:last-child {
+  border-bottom: none;
+}
+.dk {
+  color: var(--text-dim);
+}
+.dv {
+  color: var(--text);
+  font-weight: 600;
+}
+.wiki-link {
+  display: block;
+  text-align: center;
+  margin-top: 4px;
+  padding: 11px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.06);
+  color: #7ab0ff;
+  text-decoration: none;
+  font-size: 13px;
+  font-weight: 600;
+  transition: background 0.15s ease;
+}
+.wiki-link:hover {
+  background: rgba(122, 176, 255, 0.14);
 }
 
 @media (max-width: 360px) {
