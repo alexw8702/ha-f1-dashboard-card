@@ -4,6 +4,8 @@
 [![Add Repo](https://img.shields.io/badge/HACS-Repo%20hinzuf%C3%BCgen-41BDF5.svg?style=for-the-badge)](https://my.home-assistant.io/redirect/hacs_repository/?owner=alexw8702&repository=ha-f1-dashboard-card&category=plugin)
 [![Release](https://img.shields.io/github/v/release/alexw8702/ha-f1-dashboard-card?style=for-the-badge)](https://github.com/alexw8702/ha-f1-dashboard-card/releases)
 
+![F1 Dashboard Banner](images/banner.jpg)
+
 ![F1 Dashboard Card Vorschau](images/preview.png)
 
 Vier eigenständige, dunkeldesignte Custom Cards für ein **Formel-1-Dashboard** in Home Assistant. **v0.4.1** bringt ein komplettes **Redesign der Rennwochenende-Karte** sowie einen Wechsel der Codebasis auf **Vue 3** (Single-File-Components, `.ce.vue`) für schnellere Entwicklung und einfacheres Styling.
