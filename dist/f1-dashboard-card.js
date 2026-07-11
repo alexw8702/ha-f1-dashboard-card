@@ -1143,7 +1143,7 @@
     { type: "f1-race-recap-card", name: "F1 Letztes Rennen", description: "Ergebnis, Reifenstrategie & Boxenstopps (OpenF1)", preview: false, documentationURL: "https://github.com/alexw8702/ha-f1-dashboard" }
   );
 
-  console.info("%c F1-DASHBOARD-CARD %c v0.0.2 ",
+  console.info("%c F1-DASHBOARD-CARD %c v0.3.0 ",
     "background:#ED1131;color:#fff;font-weight:700;border-radius:3px 0 0 3px;padding:2px 6px",
     "background:#1e1e28;color:#00D7B6;border-radius:0 3px 3px 0;padding:2px 6px");
 })();
