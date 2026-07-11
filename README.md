@@ -6,7 +6,7 @@
 
 ![F1 Dashboard Banner](images/banner.jpg)
 
-Vier eigenständige, dunkeldesignte Custom Cards für ein **Formel-1-Dashboard** in Home Assistant. **v0.5.0** bringt ein komplettes **Redesign der Rennwochenende-Karte** sowie einen Wechsel der Codebasis auf **Vue 3** (Single-File-Components, `.ce.vue`) für schnellere Entwicklung und einfacheres Styling.
+Vier eigenständige, dunkeldesignte Custom Cards für ein **Formel-1-Dashboard** in Home Assistant. **v0.5.1** bringt ein komplettes **Redesign der Rennwochenende-Karte** sowie einen Wechsel der Codebasis auf **Vue 3** (Single-File-Components, `.ce.vue`) für schnellere Entwicklung und einfacheres Styling.
 
 | Karte | Element | Zeigt |
 |-------|---------|-------|
@@ -188,6 +188,13 @@ cards:
 ---
 
 ## Changelog
+
+### v0.5.1
+- 🛠️ **Refactoring & Detail-Verbesserungen**:
+  * **Kontrastreiche Team-Logos**: Team-Logos in der Detailkarte besitzen nun ein rundes weißes Badge als Hintergrund, wodurch auch dunkle Logos (wie z. B. Mercedes AMG) hervorragend lesbar sind.
+  * **Größere Porträts & Logos**: Die Porträts der Fahrer und Teamlogos im Header der Detailkarten wurden von 50px auf 90px vergrößert.
+  * **Vertikale Fahrerliste mit WM-Platz**: Die Fahrer eines Teams werden in der Detailkarte nun sauber untereinander aufgelistet. Dabei wird deren aktueller WM-Rang in einem Team-akzentuierten Badge und deren WM-Punkte dargestellt.
+  * **Wikipedia-Zusammenfassungen**: Zeigt nun den Wikipedia-Einleitungstext (Kurz-Bio) des Fahrers bzw. Teams dynamisch in der Detailkarte an.
 
 ### v0.5.0
 - ✨ **Feature (Fahrer- & Konstrukteurs-Details & Viewport-Fix)**:
