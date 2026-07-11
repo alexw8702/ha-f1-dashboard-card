@@ -19,27 +19,59 @@ const state = computed(() =>
 
 const selectedDriver = ref(null)
 const driverImage = ref('')
+const p2Count = ref(0)
+const p3Count = ref(0)
 
 watch(selectedDriver, async (newVal) => {
   driverImage.value = ''
-  if (!newVal || !newVal.url) return
+  p2Count.value = 0
+  p3Count.value = 0
+  if (!newVal) return
   
-  try {
-    const urlObj = new URL(newVal.url)
-    const hostParts = urlObj.hostname.split('.')
-    const lang = hostParts[0] || 'de'
-    const pathParts = urlObj.pathname.split('/')
-    const title = pathParts[pathParts.length - 1]
-    
-    if (title) {
-      const response = await fetch(`https://${lang}.wikipedia.org/api/rest_v1/page/summary/${title}`)
+  if (newVal.url) {
+    try {
+      const urlObj = new URL(newVal.url)
+      const hostParts = urlObj.hostname.split('.')
+      const lang = hostParts[0] || 'de'
+      const pathParts = urlObj.pathname.split('/')
+      const title = pathParts[pathParts.length - 1]
+      
+      if (title) {
+        fetch(`https://${lang}.wikipedia.org/api/rest_v1/page/summary/${title}`)
+          .then(res => res.ok ? res.json() : null)
+          .then(data => {
+            if (data) {
+              driverImage.value = data.thumbnail?.source || data.originalimage?.source || ''
+            }
+          })
+          .catch(e => console.error('Fehler beim Abrufen des Wikipedia-Bildes:', e))
+      }
+    } catch (e) {
+      console.error('Ungültige Wikipedia-URL:', e)
+    }
+  }
+  
+  if (newVal.driverId) {
+    try {
+      const response = await fetch(`https://api.jolpi.ca/ergast/f1/current/drivers/${newVal.driverId}/results.json`)
       if (response.ok) {
         const data = await response.json()
-        driverImage.value = data.thumbnail?.source || data.originalimage?.source || ''
+        const races = data.MRData?.RaceTable?.Races || []
+        let p2 = 0
+        let p3 = 0
+        for (const race of races) {
+          const res = race.Results?.[0]
+          if (res) {
+            if (res.position === "2") p2++
+            else if (res.position === "3") p3++
+          }
+        }
+        p2Count.value = p2
+        p3Count.value = p3
       }
+    } catch (e) {
+      console.error('Fehler beim Abrufen der Fahrer-Ergebnisse:', e)
     }
-  } catch (e) {
-    console.error('Fehler beim Abrufen des Fahrerbildes:', e)
   }
 })
 
@@ -71,6 +103,7 @@ const drivers = computed(() => {
         permanentNumber: leg?.Driver?.permanentNumber || d.permanentNumber || '',
         dateOfBirth: leg?.Driver?.dateOfBirth || d.dateOfBirth || '',
         url: leg?.Driver?.url || d.url || '',
+        driverId: leg?.Driver?.driverId || '',
       }
     })
 })
@@ -196,6 +229,35 @@ function countryEmoji(nationality) {
             </div>
           </div>
           
+          <!-- Compact Stats Grid -->
+          <div class="detail-stats-grid">
+            <div class="stat-box">
+              <div class="stat-val">{{ selectedDriver.pos }}.</div>
+              <div class="stat-lbl">WM-Rang</div>
+            </div>
+            <div class="stat-box">
+              <div class="stat-val">{{ selectedDriver.points }}</div>
+              <div class="stat-lbl">Punkte</div>
+            </div>
+            <div class="stat-box">
+              <div class="stat-val podiums-row">
+                <span class="p-gold" title="Siege (P1)">
+                  <svg class="trophy-icon" viewBox="0 0 24 24"><path d="M18 2H6v1a6 6 0 00-6 6v1c0 2.2 1.3 4.1 3.2 4.9.8 1.6 2.3 2.8 4.2 3.1V20H5v2h14v-2h-2.4v-2c1.9-.3 3.4-1.5 4.2-3.1 1.9-.8 3.2-2.7 3.2-4.9V9a6 6 0 00-6-6V2zM2 9a4 4 0 014-4v6a4 4 0 01-4-4zm16 2V5a4 4 0 014 4v2a4 4 0 01-4-4z"/></svg>
+                  {{ selectedDriver.wins }}
+                </span>
+                <span class="p-silver" title="2. Plätze (P2)">
+                  <svg class="trophy-icon" viewBox="0 0 24 24"><path d="M18 2H6v1a6 6 0 00-6 6v1c0 2.2 1.3 4.1 3.2 4.9.8 1.6 2.3 2.8 4.2 3.1V20H5v2h14v-2h-2.4v-2c1.9-.3 3.4-1.5 4.2-3.1 1.9-.8 3.2-2.7 3.2-4.9V9a6 6 0 00-6-6V2zM2 9a4 4 0 014-4v6a4 4 0 01-4-4zm16 2V5a4 4 0 014 4v2a4 4 0 01-4-4z"/></svg>
+                  {{ p2Count }}
+                </span>
+                <span class="p-bronze" title="3. Plätze (P3)">
+                  <svg class="trophy-icon" viewBox="0 0 24 24"><path d="M18 2H6v1a6 6 0 00-6 6v1c0 2.2 1.3 4.1 3.2 4.9.8 1.6 2.3 2.8 4.2 3.1V20H5v2h14v-2h-2.4v-2c1.9-.3 3.4-1.5 4.2-3.1 1.9-.8 3.2-2.7 3.2-4.9V9a6 6 0 00-6-6V2zM2 9a4 4 0 014-4v6a4 4 0 01-4-4zm16 2V5a4 4 0 014 4v2a4 4 0 01-4-4z"/></svg>
+                  {{ p3Count }}
+                </span>
+              </div>
+              <div class="stat-lbl">Podestplätze</div>
+            </div>
+          </div>
+
           <div class="detail-rows">
             <div class="drow" v-if="selectedDriver.permanentNumber">
               <span class="dk">Startnummer</span>
@@ -212,18 +274,6 @@ function countryEmoji(nationality) {
             <div class="drow" v-if="selectedDriver.team">
               <span class="dk">Team</span>
               <span class="dv" :style="{ color: teamColor(selectedDriver.teamId) }">{{ selectedDriver.team }}</span>
-            </div>
-            <div class="drow">
-              <span class="dk">Position</span>
-              <span class="dv">{{ selectedDriver.pos }}.</span>
-            </div>
-            <div class="drow">
-              <span class="dk">Punkte</span>
-              <span class="dv">{{ selectedDriver.points }}</span>
-            </div>
-            <div class="drow" v-if="selectedDriver.wins > 0">
-              <span class="dk">Siege</span>
-              <span class="dv">🏆 {{ selectedDriver.wins }}</span>
             </div>
           </div>
           
@@ -387,17 +437,15 @@ function countryEmoji(nationality) {
 
 /* ---------- Overlay / Detail Card ---------- */
 .overlay {
-  position: absolute;
+  position: fixed;
   inset: 0;
-  z-index: 10;
+  z-index: 1000;
   display: flex;
   align-items: center;
   justify-content: center;
   background: rgba(8, 8, 11, 0);
   pointer-events: none;
   transition: background 0.22s ease;
-  border-radius: 16px;
-  overflow: hidden;
   padding: 16px;
 }
 .overlay.open {
@@ -423,6 +471,65 @@ function countryEmoji(nationality) {
   position: relative;
   box-shadow: 0 12px 32px rgba(0, 0, 0, 0.5);
 }
+
+/* Compact Stats Grid */
+.detail-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  margin-bottom: 16px;
+  background: rgba(0, 0, 0, 0.15);
+  border: 1px solid var(--panel-border);
+  border-radius: 10px;
+  padding: 12px 8px;
+  text-align: center;
+}
+.stat-box {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  justify-content: center;
+}
+.stat-box:not(:last-child) {
+  border-right: 1px solid rgba(255, 255, 255, 0.08);
+}
+.stat-val {
+  font-size: 16px;
+  font-weight: 800;
+  color: var(--text);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  min-height: 24px;
+}
+.stat-lbl {
+  font-size: 9.5px;
+  color: var(--text-dim);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+.podiums-row {
+  display: flex;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 700;
+}
+.podiums-row span {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+}
+.trophy-icon {
+  width: 14px;
+  height: 14px;
+  display: inline-block;
+  vertical-align: middle;
+  fill: currentColor;
+}
+.p-gold { color: #FFD700; fill: #FFD700; }
+.p-silver { color: #E6E8EC; fill: #E6E8EC; }
+.p-bronze { color: #EE9A49; fill: #EE9A49; }
 .overlay-close {
   position: absolute;
   top: 14px;

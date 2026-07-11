@@ -6,7 +6,7 @@
 
 ![F1 Dashboard Banner](images/banner.jpg)
 
-Vier eigenständige, dunkeldesignte Custom Cards für ein **Formel-1-Dashboard** in Home Assistant. **v0.4.3** bringt ein komplettes **Redesign der Rennwochenende-Karte** sowie einen Wechsel der Codebasis auf **Vue 3** (Single-File-Components, `.ce.vue`) für schnellere Entwicklung und einfacheres Styling.
+Vier eigenständige, dunkeldesignte Custom Cards für ein **Formel-1-Dashboard** in Home Assistant. **v0.4.4** bringt ein komplettes **Redesign der Rennwochenende-Karte** sowie einen Wechsel der Codebasis auf **Vue 3** (Single-File-Components, `.ce.vue`) für schnellere Entwicklung und einfacheres Styling.
 
 | Karte | Element | Zeigt |
 |-------|---------|-------|
@@ -188,6 +188,14 @@ cards:
 ---
 
 ## Changelog
+
+### v0.4.4
+- ✨ **Feature (Fahrer- & Konstrukteurs-Details & Viewport-Fix)**:
+  * **Interaktive Team-Details**: Durch Klicken auf ein Team in der Konstrukteurswertung (`f1-constructors-card`) öffnet sich nun ebenfalls eine detaillierte Karte (Overlay) im Carbon-Design.
+  * **Team-Fakten**: Zeigt Herkunft, Wikipedia-Link und die **aktuelle Fahrerbesetzung** (vollständig dynamisch geladen) an.
+  * **Viewport-zentrierte Positionierung**: Das Detail-Overlay positioniert sich nun mittels `position: fixed` relativ zum Viewport (Browserfenster) statt zur Karte. Dadurch schwebt es immer exakt in der Mitte der Anzeige, unabhängig von der Scroll-Position.
+  * **Kompaktes Stats-Grid**: Die Position, die WM-Punkte und die Podestplätze (P1, P2, P3) werden für Fahrer und Teams platzsparend in einem dreispaltigen Raster mit edlen Vektor-Pokalen dargestellt.
+  * **2. & 3. Plätze**: Das Detail-Overlay lädt nun zusätzlich alle Rennergebnisse des Fahrers oder Teams für die aktuelle Saison und berechnet die Anzahl der 2. und 3. Plätze.
 
 ### v0.4.3
 - 🛠️ **Refactoring & Design-Optimierung**:
