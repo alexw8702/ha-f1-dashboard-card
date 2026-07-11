@@ -10,21 +10,77 @@ const dom = new JSDOM('<!DOCTYPE html><html><body></body></html>', {
 const { window } = dom;
 
 // Fetch-Mock
-window.fetch = async (url) => ({
-  ok: true,
-  json: async () => ({
-    daily: {
-      time: ['2026-07-16','2026-07-17','2026-07-18','2026-07-19','2026-07-20'],
-      temperature_2m_max: [30.6,26.9,24.5,21.6,20.7],
-      temperature_2m_min: [18.7,18.1,16.9,14.6,13.0],
-      precipitation_probability_max: [41,45,49,49,40],
-      weather_code: [95,95,53,53,3],
-      wind_speed_10m_max: [18,22,15,20,12],
-    },
-    // Ergast-style constructor results (for team driver lookup)
-    MRData: { RaceTable: { Races: [] } },
-  }),
-});
+window.fetch = async (url) => {
+  if (url.includes('wikipedia.org')) {
+    return {
+      ok: true,
+      json: async () => ({
+        thumbnail: { source: 'https://example.com/driver.jpg' },
+        extract: 'Andrea Kimi Antonelli ist ein italienischer Rennfahrer.'
+      })
+    };
+  }
+  if (url.includes('results.json')) {
+    return {
+      ok: true,
+      json: async () => ({
+        MRData: {
+          RaceTable: {
+            Races: [
+              {
+                round: "8",
+                raceName: "Austrian Grand Prix",
+                Results: [{ position: "2", grid: "3", points: "18", status: "Finished" }]
+              },
+              {
+                round: "9",
+                raceName: "British Grand Prix",
+                Results: [{ position: "15", grid: "1", points: "0", status: "Finished" }]
+              }
+            ]
+          }
+        }
+      })
+    };
+  }
+  if (url.includes('qualifying.json')) {
+    return {
+      ok: true,
+      json: async () => ({
+        MRData: {
+          RaceTable: {
+            Races: [
+              {
+                round: "8",
+                raceName: "Austrian Grand Prix",
+                QualifyingResults: [{ position: "3", Q1: "1:05.123", Q2: "1:04.987", Q3: "1:04.888" }]
+              },
+              {
+                round: "9",
+                raceName: "British Grand Prix",
+                QualifyingResults: [{ position: "1", Q1: "1:29.719", Q2: "1:28.493", Q3: "1:28.111" }]
+              }
+            ]
+          }
+        }
+      })
+    };
+  }
+  return {
+    ok: true,
+    json: async () => ({
+      daily: {
+        time: ['2026-07-16','2026-07-17','2026-07-18','2026-07-19','2026-07-20'],
+        temperature_2m_max: [30.6,26.9,24.5,21.6,20.7],
+        temperature_2m_min: [18.7,18.1,16.9,14.6,13.0],
+        precipitation_probability_max: [41,45,49,49,40],
+        weather_code: [95,95,53,53,3],
+        wind_speed_10m_max: [18,22,15,20,12],
+      },
+      MRData: { RaceTable: { Races: [] } }
+    })
+  };
+};
 
 const bundle = fs.readFileSync('./dist/f1-dashboard-card.js', 'utf8');
 window.eval(bundle);
@@ -55,7 +111,7 @@ const hass = {
       last_updated: '2026-07-11T08:30:00+00:00',
       attributes: {
         standings: [
-          { name: 'Andrea Kimi Antonelli', team: 'Mercedes', teamId: 'mercedes', tla: 'ANT', points: 179, wins: 5 },
+          { name: 'Andrea Kimi Antonelli', team: 'Mercedes', teamId: 'mercedes', tla: 'ANT', points: 179, wins: 5, driverId: 'antonelli', url: 'https://de.wikipedia.org/wiki/Andrea_Kimi_Antonelli' },
           { name: 'George Russell', team: 'Mercedes', teamId: 'mercedes', tla: 'RUS', points: 154, wins: 2 },
           { name: 'Lewis Hamilton', team: 'Ferrari', teamId: 'ferrari', tla: 'HAM', points: 147, wins: 1 },
           { name: 'Charles Leclerc', team: 'Ferrari', teamId: 'ferrari', tla: 'LEC', points: 140, wins: 1 },
@@ -116,6 +172,15 @@ for (const tag of tags) {
   elements[tag] = el;
 }
 
+// Simulate driver click to test details popup
+setTimeout(() => {
+  const root = elements['f1-drivers-card'].shadowRoot;
+  const firstRow = root?.querySelector('.driver-row');
+  if (firstRow) {
+    firstRow.click();
+  }
+}, 50);
+
 setTimeout(() => {
   const results = [];
   const check = (name, ok) => { results.push([name, ok]); };
@@ -136,6 +201,13 @@ setTimeout(() => {
 
     // Jeder Fahrer muss gerendert sein
     check('Fahrer: alle 6 Fahrer gerendert', driverRows.length === 6);
+
+    // Detail-Popup Checks
+    const detailCard = root.querySelector('.detail-card');
+    check('Fahrer-Detail: Detail-Card vorhanden', !!detailCard);
+    check('Fahrer-Detail: Kreis-Avatar-Container vorhanden', !!root.querySelector('.detail-avatar-circle'));
+    check('Fahrer-Detail: Rechteckiger Avatar-Container vorhanden', !!root.querySelector('.detail-avatar-rectangular'));
+    check('Fahrer-Detail: Letzte Ergebnisse Bereich vorhanden', !!root.querySelector('.recent-results-section'));
 
     // Styles: @media Regel muss im ShadowRoot existieren (Grid-Regel)
     const sheets = root.adoptedStyleSheets || [];

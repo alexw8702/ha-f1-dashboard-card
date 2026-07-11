@@ -22,12 +22,16 @@ const driverImage = ref('')
 const p2Count = ref(0)
 const p3Count = ref(0)
 const wikiSummary = ref('')
+const recentResults = ref([])
+const recentQualifying = ref([])
 
 watch(selectedDriver, async (newVal) => {
   driverImage.value = ''
   p2Count.value = 0
   p3Count.value = 0
   wikiSummary.value = ''
+  recentResults.value = []
+  recentQualifying.value = []
   if (!newVal) return
   
   if (newVal.url) {
@@ -71,9 +75,47 @@ watch(selectedDriver, async (newVal) => {
         }
         p2Count.value = p2
         p3Count.value = p3
+        
+        // Let's get the last 3 races
+        const lastThree = races.slice(-3).reverse().map(race => {
+          const res = race.Results?.[0] || {}
+          return {
+            round: race.round,
+            raceName: race.raceName,
+            shortName: race.raceName.replace(" Grand Prix", ""),
+            position: res.position,
+            grid: res.grid,
+            points: res.points,
+            status: res.status
+          }
+        })
+        recentResults.value = lastThree
       }
     } catch (e) {
       console.error('Fehler beim Abrufen der Fahrer-Ergebnisse:', e)
+    }
+
+    try {
+      const response = await fetch(`https://api.jolpi.ca/ergast/f1/current/drivers/${newVal.driverId}/qualifying.json`)
+      if (response.ok) {
+        const data = await response.json()
+        const races = data.MRData?.RaceTable?.Races || []
+        const lastThree = races.slice(-3).reverse().map(race => {
+          const res = race.QualifyingResults?.[0] || {}
+          return {
+            round: race.round,
+            raceName: race.raceName,
+            shortName: race.raceName.replace(" Grand Prix", ""),
+            position: res.position,
+            q1: res.Q1,
+            q2: res.Q2,
+            q3: res.Q3
+          }
+        })
+        recentQualifying.value = lastThree
+      }
+    } catch (e) {
+      console.error('Fehler beim Abrufen der Fahrer-Qualifying-Ergebnisse:', e)
     }
   }
 })
@@ -106,7 +148,7 @@ const drivers = computed(() => {
         permanentNumber: leg?.Driver?.permanentNumber || d.permanentNumber || '',
         dateOfBirth: leg?.Driver?.dateOfBirth || d.dateOfBirth || '',
         url: leg?.Driver?.url || d.url || '',
-        driverId: leg?.Driver?.driverId || '',
+        driverId: leg?.Driver?.driverId || d.driverId || '',
       }
     })
 })
@@ -155,6 +197,16 @@ function countryEmoji(nationality) {
     'Belgian': '🇧🇪', 'Norwegian': '🇳🇴', 'Polish': '🇵🇱', 'Turkish': '🇹🇷',
   }
   return map[nationality] || ''
+}
+
+function getPosClass(pos) {
+  const p = parseInt(pos)
+  if (isNaN(p)) return 'pos-normal'
+  if (p === 1) return 'pos-1'
+  if (p === 2) return 'pos-2'
+  if (p === 3) return 'pos-3'
+  if (p <= 10) return 'pos-points'
+  return 'pos-normal'
 }
 </script>
 
@@ -236,9 +288,14 @@ function countryEmoji(nationality) {
                 {{ selectedDriver.team }}
               </div>
             </div>
-            <div class="detail-avatar" v-if="driverImage">
+            <div class="detail-avatar-circle" v-if="driverImage">
               <img :src="driverImage" :alt="selectedDriver.name" />
             </div>
+          </div>
+
+          <!-- Rectangular Avatar, hidden on mobile -->
+          <div class="detail-avatar-rectangular" v-if="driverImage">
+            <img :src="driverImage" :alt="selectedDriver.name" />
           </div>
           
           <!-- Compact Stats Grid -->
@@ -290,6 +347,33 @@ function countryEmoji(nationality) {
           </div>
           
           <p class="detail-extract" v-if="wikiSummary">{{ wikiSummary }}</p>
+
+          <!-- Recent Results (Saison 2026) -->
+          <div class="recent-results-section" v-if="recentResults.length || recentQualifying.length">
+            <h3 class="recent-results-title">Letzte Ergebnisse (Saison 2026)</h3>
+            <div class="recent-results-grid">
+              <!-- Qualifying -->
+              <div class="results-col" v-if="recentQualifying.length">
+                <span class="results-col-title">Qualifying</span>
+                <div class="results-list-mini">
+                  <div v-for="q in recentQualifying" :key="q.round" class="mini-result-row">
+                    <span class="mini-race-name">{{ q.shortName }}</span>
+                    <span class="mini-pos-badge" :class="getPosClass(q.position)">P{{ q.position }}</span>
+                  </div>
+                </div>
+              </div>
+              <!-- Race -->
+              <div class="results-col" v-if="recentResults.length">
+                <span class="results-col-title">Rennen</span>
+                <div class="results-list-mini">
+                  <div v-for="r in recentResults" :key="r.round" class="mini-result-row">
+                    <span class="mini-race-name">{{ r.shortName }}</span>
+                    <span class="mini-pos-badge" :class="getPosClass(r.position)">P{{ r.position }}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
           
           <a v-if="selectedDriver.url" class="wiki-link" :href="selectedDriver.url" target="_blank" rel="noopener noreferrer">
             Wikipedia-Artikel &rarr;
@@ -367,6 +451,68 @@ function countryEmoji(nationality) {
   }
   .overlay-content {
     max-width: 680px;
+  }
+  .detail-card {
+    display: grid;
+    grid-template-columns: 210px 1fr;
+    column-gap: 24px;
+    row-gap: 8px;
+  }
+  .detail-avatar-rectangular {
+    display: block;
+    grid-column: 1;
+    grid-row: 1 / span 2;
+    width: 100%;
+    aspect-ratio: 3/4;
+    border-radius: 12px;
+    overflow: hidden;
+    border: 2px solid var(--panel-border);
+    margin-bottom: 8px;
+  }
+  .detail-avatar-rectangular img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: top center;
+  }
+  .detail-avatar-circle {
+    display: none;
+  }
+  .detail-head {
+    grid-column: 2;
+    grid-row: 1;
+    margin-bottom: 0;
+  }
+  .detail-stats-grid {
+    grid-column: 2;
+    grid-row: 2;
+    margin-bottom: 0;
+  }
+  .detail-rows {
+    grid-column: 1;
+    grid-row: 3 / span 3;
+    margin-bottom: 0;
+  }
+  .detail-extract {
+    grid-column: 2;
+    grid-row: 3;
+    margin-top: 0;
+    margin-bottom: 0;
+  }
+  .recent-results-section {
+    grid-column: 2;
+    grid-row: 4;
+    margin-top: 0;
+    padding-top: 8px;
+  }
+  .recent-results-grid {
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+  }
+  .wiki-link {
+    grid-column: 2;
+    grid-row: 5;
+    margin-top: 0;
   }
 }
 
@@ -641,7 +787,7 @@ function countryEmoji(nationality) {
   opacity: 0.9;
   letter-spacing: 0.02em;
 }
-.detail-avatar {
+.detail-avatar-circle {
   width: 90px;
   height: 90px;
   border-radius: 50%;
@@ -653,12 +799,75 @@ function countryEmoji(nationality) {
   justify-content: center;
   background: var(--bg);
 }
-.detail-avatar img {
+.detail-avatar-circle img {
   width: 100%;
   height: 100%;
   object-fit: cover;
   object-position: top center;
 }
+.detail-avatar-rectangular {
+  display: none;
+}
+
+/* Recent Results Section */
+.recent-results-section {
+  margin-top: 12px;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  padding-top: 12px;
+}
+.recent-results-title {
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--text-dim);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  margin-bottom: 6px;
+}
+.recent-results-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 10px;
+}
+.results-col {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.results-col-title {
+  font-size: 9.5px;
+  font-weight: 600;
+  color: var(--text-dim);
+  text-transform: uppercase;
+}
+.results-list-mini {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+.mini-result-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 3px 6px;
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 4px;
+  font-size: 10.5px;
+}
+.mini-race-name {
+  color: var(--text);
+  font-weight: 500;
+}
+.mini-pos-badge {
+  padding: 1px 4px;
+  border-radius: 3px;
+  font-size: 9px;
+  font-weight: 700;
+}
+.pos-1 { background: #ffd700; color: #101017; }
+.pos-2 { background: #c0c0c0; color: #101017; }
+.pos-3 { background: #cd7f32; color: #101017; }
+.pos-points { background: rgba(0, 230, 195, 0.15); color: var(--teal); }
+.pos-normal { background: rgba(255, 255, 255, 0.08); color: var(--text-dim); }
 .detail-rows {
   display: flex;
   flex-direction: column;
