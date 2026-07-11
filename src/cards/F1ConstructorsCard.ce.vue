@@ -23,6 +23,8 @@ const p2Count = ref(0)
 const p3Count = ref(0)
 const teamDrivers = ref([])
 const wikiSummary = ref('')
+const dnfCount = ref(0)
+const lastRaces = ref([])
 
 watch(selectedTeam, async (newVal) => {
   teamLogo.value = ''
@@ -30,6 +32,8 @@ watch(selectedTeam, async (newVal) => {
   p3Count.value = 0
   teamDrivers.value = []
   wikiSummary.value = ''
+  dnfCount.value = 0
+  lastRaces.value = []
   if (!newVal) return
   
   if (newVal.url) {
@@ -64,10 +68,13 @@ watch(selectedTeam, async (newVal) => {
         const races = data.MRData?.RaceTable?.Races || []
         let p2 = 0
         let p3 = 0
+        let dnfVal = 0
+        const raceList = []
         const uniqueDrivers = {}
         
         for (const race of races) {
           const results = race.Results || []
+          const positions = []
           for (const res of results) {
             if (res.Driver) {
               const dId = res.Driver.driverId
@@ -83,8 +90,33 @@ watch(selectedTeam, async (newVal) => {
             }
             if (res.position === "2") p2++
             else if (res.position === "3") p3++
+            
+            // DNF check
+            const status = res.status || ''
+            const posText = res.positionText || ''
+            const retired = posText === 'R' || (status !== 'Finished' && !status.includes('Lap') && !status.includes('Laps'))
+            if (retired) {
+              dnfVal++
+              positions.push('R')
+            } else {
+              positions.push(res.position || '–')
+            }
           }
+          
+          raceList.push({
+            round: parseInt(race.round || '0'),
+            name: race.raceName || 'Rennen',
+            positions: positions.sort((a, b) => {
+              if (a === 'R') return 1
+              if (b === 'R') return -1
+              return a - b
+            })
+          })
         }
+        
+        // Sort and slice last 3 races
+        raceList.sort((a, b) => a.round - b.round)
+        const last3 = raceList.slice(-3).reverse()
         
         // Fahrer-WM-Positionen und Punkte aus dem Fahrerwertungs-Sensor laden
         const driverStandingsEntity = Object.keys(props.hass?.states || {}).find(
@@ -116,12 +148,25 @@ watch(selectedTeam, async (newVal) => {
         p2Count.value = p2
         p3Count.value = p3
         teamDrivers.value = driverList
+        dnfCount.value = dnfVal
+        lastRaces.value = last3
       }
     } catch (e) {
       console.error('Fehler beim Abrufen der Team-Ergebnisse:', e)
     }
   }
 })
+
+function getPosClass(pos) {
+  if (pos === 'R') return 'pos-dnf'
+  const p = parseInt(pos)
+  if (isNaN(p)) return 'pos-normal'
+  if (p === 1) return 'pos-1'
+  if (p === 2) return 'pos-2'
+  if (p === 3) return 'pos-3'
+  if (p <= 10) return 'pos-points'
+  return 'pos-normal'
+}
 
 const driverStandingsEntity = computed(() => {
   return Object.keys(props.hass?.states || {}).find(
@@ -325,7 +370,7 @@ function countryEmoji(nationality) {
             </div>
           </div>
 
-          <!-- Drivers Championship Section -->
+          <!-- Drivers Championship Section (Right column on desktop) -->
           <div class="detail-drivers-section" v-if="teamDrivers.length">
             <div class="section-title">Fahrer</div>
             <div class="drivers-list">
@@ -342,6 +387,30 @@ function countryEmoji(nationality) {
           </div>
           
           <p class="detail-extract" v-if="wikiSummary">{{ wikiSummary }}</p>
+
+          <!-- Team History Section (Season 2026) -->
+          <div class="team-history-section" v-if="lastRaces.length">
+            <div class="section-title">Team-Historie (Saison 2026)</div>
+            <div class="history-grid">
+              <div class="history-stat">
+                <span class="history-lbl">Saison-Ausfälle (DNFs):</span>
+                <span class="history-val dnf-count" :class="{ 'has-dnfs': dnfCount > 0 }">{{ dnfCount }}</span>
+              </div>
+              <div class="history-races">
+                <span class="history-lbl">Letzte 3 Rennen:</span>
+                <div class="history-races-list">
+                  <div v-for="r in lastRaces" :key="r.round" class="history-race-row">
+                    <span class="race-name">{{ r.name }}</span>
+                    <div class="race-results-badges">
+                      <span v-for="(pos, idx) in r.positions" :key="idx" class="mini-pos-badge" :class="getPosClass(pos)">
+                        {{ pos === 'R' ? 'DNF' : 'P' + pos }}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
           
           <a v-if="selectedTeam.url" class="wiki-link" :href="selectedTeam.url" target="_blank" rel="noopener noreferrer">
             Wikipedia-Artikel &rarr;
@@ -879,46 +948,122 @@ function countryEmoji(nationality) {
   .team-stats .wins, .team-stats .wins-placeholder { width: 30px; font-size: 10px; }
 }
 
+/* Team History Section (Hidden on mobile) */
+.team-history-section {
+  display: none;
+}
+.history-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.04);
+  border-radius: 8px;
+  padding: 10px 12px;
+}
+.history-stat {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  padding-bottom: 6px;
+}
+.history-lbl {
+  font-size: 11px;
+  color: var(--text-dim);
+}
+.history-val {
+  font-size: 12.5px;
+  font-weight: 700;
+}
+.dnf-count.has-dnfs {
+  color: #ff4a43;
+}
+.history-races {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.history-races-list {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+.history-race-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.race-name {
+  font-size: 11.5px;
+  color: var(--text);
+}
+.race-results-badges {
+  display: flex;
+  gap: 4px;
+}
+.mini-pos-badge {
+  padding: 1px 4px;
+  border-radius: 3px;
+  font-size: 9px;
+  font-weight: 700;
+  min-width: 30px;
+  text-align: center;
+}
+.pos-1 { background: #ffd700; color: #101017; }
+.pos-2 { background: #c0c0c0; color: #101017; }
+.pos-3 { background: #cd7f32; color: #101017; }
+.pos-points { background: rgba(0, 230, 195, 0.15); color: #00e6c3; }
+.pos-normal { background: rgba(255, 255, 255, 0.08); color: var(--text-dim); }
+.pos-dnf { background: rgba(225, 6, 0, 0.15); color: #ff4a43; }
+
 @media (min-width: 600px) {
   .overlay-content {
     max-width: 680px;
   }
   .detail-card {
     display: grid;
-    grid-template-columns: 240px 1fr;
+    grid-template-columns: 1fr 240px; /* Swapped columns: main info left, drivers list right */
     column-gap: 24px;
     row-gap: 8px;
   }
   .detail-head {
-    grid-column: 2;
+    grid-column: 1;
     grid-row: 1;
     margin-bottom: 0;
   }
   .detail-stats-grid {
-    grid-column: 2;
-    grid-row: 2;
-    margin-bottom: 0;
-  }
-  .detail-drivers-section {
     grid-column: 1;
-    grid-row: 1 / span 3;
+    grid-row: 2;
     margin-bottom: 0;
   }
   .detail-rows {
     grid-column: 1;
-    grid-row: 4;
+    grid-row: 3;
     margin-bottom: 0;
   }
   .detail-extract {
-    grid-column: 2;
-    grid-row: 3;
+    grid-column: 1;
+    grid-row: 4;
     margin-top: 0;
     margin-bottom: 0;
   }
-  .wiki-link {
-    grid-column: 2;
-    grid-row: 4;
+  .team-history-section {
+    display: block;
+    grid-column: 1;
+    grid-row: 5;
     margin-top: 0;
+    padding-top: 8px;
+  }
+  .wiki-link {
+    grid-column: 1;
+    grid-row: 6;
+    margin-top: 0;
+  }
+  .detail-drivers-section {
+    grid-column: 2;
+    grid-row: 1 / span 6;
+    margin-bottom: 0;
   }
 }
 </style>
