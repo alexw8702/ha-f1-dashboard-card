@@ -338,7 +338,11 @@ function getPosClass(pos) {
             </div>
             <div class="drow" v-if="selectedDriver.dateOfBirth">
               <span class="dk">Geburtsdatum</span>
-              <span class="dv">{{ formatDate(selectedDriver.dateOfBirth) }} ({{ calcAge(selectedDriver.dateOfBirth) }} Jahre)</span>
+              <span class="dv">{{ formatDate(selectedDriver.dateOfBirth) }}</span>
+            </div>
+            <div class="drow" v-if="selectedDriver.dateOfBirth">
+              <span class="dk">Alter</span>
+              <span class="dv">{{ calcAge(selectedDriver.dateOfBirth) }} Jahre</span>
             </div>
             <div class="drow" v-if="selectedDriver.team">
               <span class="dk">Team</span>
