@@ -46,24 +46,33 @@ watch(selectedDriver, async (newVal) => {
 const drivers = computed(() => {
   const attrs = state.value?.attributes ?? {}
   const raw = attrs.standings || []
+  const rawLegacy = attrs.DriverStandings || []
   
   // Sortieren nach Punkten (absteigend), Länderflags zuweisen
   return raw
     .sort((a, b) => (b.points || 0) - (a.points || 0))
-    .map((d, i) => ({
-      pos: i + 1,
-      name: d.name || '–',
-      team: d.team || '–',
-      teamId: d.teamId || d.constructor_id || '',
-      tla: d.tla || d.abbreviation || '',
-      points: d.points || 0,
-      wins: d.wins || 0,
-      diff: i === 0 ? 0 : (raw[0]?.points || 0) - (d.points || 0),
-      nationality: d.nationality || '',
-      permanentNumber: d.permanentNumber || '',
-      dateOfBirth: d.dateOfBirth || '',
-      url: d.url || '',
-    }))
+    .map((d, i) => {
+      const leg = rawLegacy.find(l => 
+        (l.Driver?.givenName && l.Driver?.familyName && 
+         `${l.Driver.givenName} ${l.Driver.familyName}`.trim().toLowerCase() === d.name.toLowerCase()) ||
+        (l.Driver?.code && d.tla && l.Driver.code.toLowerCase() === d.tla.toLowerCase())
+      )
+      
+      return {
+        pos: i + 1,
+        name: d.name || '–',
+        team: d.team || '–',
+        teamId: d.teamId || d.constructor_id || '',
+        tla: d.tla || d.abbreviation || '',
+        points: d.points || 0,
+        wins: d.wins || 0,
+        diff: i === 0 ? 0 : (raw[0]?.points || 0) - (d.points || 0),
+        nationality: d.nationality || '',
+        permanentNumber: leg?.Driver?.permanentNumber || d.permanentNumber || '',
+        dateOfBirth: leg?.Driver?.dateOfBirth || d.dateOfBirth || '',
+        url: leg?.Driver?.url || d.url || '',
+      }
+    })
 })
 
 function selectDriver(driver) {
@@ -382,13 +391,14 @@ function countryEmoji(nationality) {
   inset: 0;
   z-index: 10;
   display: flex;
-  align-items: flex-end;
+  align-items: center;
   justify-content: center;
   background: rgba(8, 8, 11, 0);
   pointer-events: none;
   transition: background 0.22s ease;
   border-radius: 16px;
   overflow: hidden;
+  padding: 16px;
 }
 .overlay.open {
   background: rgba(8, 8, 11, 0.75);
@@ -396,18 +406,22 @@ function countryEmoji(nationality) {
 }
 .overlay-content {
   width: 100%;
-  transform: translateY(100%);
-  transition: transform 0.28s cubic-bezier(0.32, 0.72, 0, 1);
+  max-width: 340px;
+  transform: scale(0.9);
+  opacity: 0;
+  transition: transform 0.24s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.24s ease;
 }
 .overlay.open .overlay-content {
-  transform: translateY(0);
+  transform: scale(1);
+  opacity: 1;
 }
 .detail-card {
   background: linear-gradient(160deg, #1c1c25 0%, #232330 100%);
-  border-radius: 16px 16px 0 0;
+  border-radius: 16px;
+  border: 1px solid var(--panel-border);
   padding: 20px 18px 22px;
   position: relative;
-  box-shadow: 0 -8px 24px rgba(0, 0, 0, 0.4);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.5);
 }
 .overlay-close {
   position: absolute;

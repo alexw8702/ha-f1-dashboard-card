@@ -6,7 +6,7 @@
 
 ![F1 Dashboard Banner](images/banner.jpg)
 
-Vier eigenständige, dunkeldesignte Custom Cards für ein **Formel-1-Dashboard** in Home Assistant. **v0.4.2** bringt ein komplettes **Redesign der Rennwochenende-Karte** sowie einen Wechsel der Codebasis auf **Vue 3** (Single-File-Components, `.ce.vue`) für schnellere Entwicklung und einfacheres Styling.
+Vier eigenständige, dunkeldesignte Custom Cards für ein **Formel-1-Dashboard** in Home Assistant. **v0.4.3** bringt ein komplettes **Redesign der Rennwochenende-Karte** sowie einen Wechsel der Codebasis auf **Vue 3** (Single-File-Components, `.ce.vue`) für schnellere Entwicklung und einfacheres Styling.
 
 | Karte | Element | Zeigt |
 |-------|---------|-------|
@@ -188,6 +188,11 @@ cards:
 ---
 
 ## Changelog
+
+### v0.4.3
+- 🛠️ **Refactoring & Design-Optimierung**:
+  * **Zentriertes Overlay**: Die Detail-Karte schwebt nun als modales Overlay in der Mitte des Bildschirms mit abgerundeten Ecken und einer flüssigen Spring-In-Animation (Skalierung und Opazität). Perfekt optimiert für Smartphones und mobile Ansichten!
+  * **Fix für Fahrerbilder**: Fehler behoben, bei dem die Fahrerbilder nicht geladen wurden. Die Detailinformationen (Wikipedia-URL, Startnummer, Geburtstag) werden nun zuverlässig aus den Rohdaten (`attrs.DriverStandings`) extrahiert, auch wenn sie in der flachen Standings-Liste fehlen.
 
 ### v0.4.2
 - ✨ **Feature (Fahrer-Details & Bilder)**:

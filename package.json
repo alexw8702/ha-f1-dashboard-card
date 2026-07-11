@@ -1,6 +1,6 @@
 {
   "name": "f1-dashboard-card",
-  "version": "0.4.2",
+  "version": "0.4.3",
   "description": "F1 Dashboard Cards - Vue 3 Redesign",
   "type": "module",
   "scripts": {
