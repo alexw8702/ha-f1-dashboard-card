@@ -5,7 +5,7 @@ dist/
 .env
 .env.*
 
-# AI-related files
+# Local tooling / notes (not part of the published project)
 CLAUDE.md
 .gemini/
 .claude/
