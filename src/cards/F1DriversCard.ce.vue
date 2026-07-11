@@ -21,11 +21,13 @@ const selectedDriver = ref(null)
 const driverImage = ref('')
 const p2Count = ref(0)
 const p3Count = ref(0)
+const wikiSummary = ref('')
 
 watch(selectedDriver, async (newVal) => {
   driverImage.value = ''
   p2Count.value = 0
   p3Count.value = 0
+  wikiSummary.value = ''
   if (!newVal) return
   
   if (newVal.url) {
@@ -42,6 +44,7 @@ watch(selectedDriver, async (newVal) => {
           .then(data => {
             if (data) {
               driverImage.value = data.thumbnail?.source || data.originalimage?.source || ''
+              wikiSummary.value = data.extract || ''
             }
           })
           .catch(e => console.error('Fehler beim Abrufen des Wikipedia-Bildes:', e))
@@ -276,6 +279,8 @@ function countryEmoji(nationality) {
               <span class="dv" :style="{ color: teamColor(selectedDriver.teamId) }">{{ selectedDriver.team }}</span>
             </div>
           </div>
+          
+          <p class="detail-extract" v-if="wikiSummary">{{ wikiSummary }}</p>
           
           <a v-if="selectedDriver.url" class="wiki-link" :href="selectedDriver.url" target="_blank" rel="noopener noreferrer">
             Wikipedia-Artikel &rarr;
@@ -553,9 +558,9 @@ function countryEmoji(nationality) {
 .detail-head {
   display: flex;
   align-items: center;
-  gap: 12px;
-  margin-bottom: 14px;
-  padding-right: 30px;
+  gap: 14px;
+  margin-bottom: 16px;
+  padding-right: 36px;
 }
 .detail-head-text {
   flex: 1;
@@ -565,7 +570,7 @@ function countryEmoji(nationality) {
 }
 .detail-accent {
   width: 5px;
-  height: 40px;
+  height: 52px;
   border-radius: 4px;
   flex: none;
 }
@@ -581,8 +586,8 @@ function countryEmoji(nationality) {
   letter-spacing: 0.02em;
 }
 .detail-avatar {
-  width: 50px;
-  height: 50px;
+  width: 90px;
+  height: 90px;
   border-radius: 50%;
   overflow: hidden;
   border: 2px solid var(--panel-border);
@@ -637,6 +642,19 @@ function countryEmoji(nationality) {
 }
 .wiki-link:hover {
   background: rgba(122, 176, 255, 0.14);
+}
+
+.detail-extract {
+  font-size: 11.5px;
+  color: var(--text-dim);
+  line-height: 1.5;
+  margin-top: 10px;
+  margin-bottom: 12px;
+  background: rgba(0, 0, 0, 0.12);
+  border: 1px solid var(--panel-border);
+  border-radius: 8px;
+  padding: 10px 12px;
+  text-align: left;
 }
 
 @media (max-width: 360px) {

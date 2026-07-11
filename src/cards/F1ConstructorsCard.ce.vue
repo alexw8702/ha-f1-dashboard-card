@@ -21,13 +21,15 @@ const selectedTeam = ref(null)
 const teamLogo = ref('')
 const p2Count = ref(0)
 const p3Count = ref(0)
-const drivers = ref([])
+const teamDrivers = ref([])
+const wikiSummary = ref('')
 
 watch(selectedTeam, async (newVal) => {
   teamLogo.value = ''
   p2Count.value = 0
   p3Count.value = 0
-  drivers.value = []
+  teamDrivers.value = []
+  wikiSummary.value = ''
   if (!newVal) return
   
   if (newVal.url) {
@@ -44,6 +46,7 @@ watch(selectedTeam, async (newVal) => {
           .then(data => {
             if (data) {
               teamLogo.value = data.thumbnail?.source || data.originalimage?.source || ''
+              wikiSummary.value = data.extract || ''
             }
           })
           .catch(e => console.error('Fehler beim Abrufen des Wikipedia-Logos:', e))
@@ -61,22 +64,58 @@ watch(selectedTeam, async (newVal) => {
         const races = data.MRData?.RaceTable?.Races || []
         let p2 = 0
         let p3 = 0
-        const driverSet = new Set()
+        const uniqueDrivers = {}
+        
         for (const race of races) {
           const results = race.Results || []
           for (const res of results) {
             if (res.Driver) {
-              const fullName = `${res.Driver.givenName} ${res.Driver.familyName}`.trim()
-              const code = res.Driver.code ? ` (${res.Driver.code})` : ''
-              driverSet.add(fullName + code)
+              const dId = res.Driver.driverId
+              if (!uniqueDrivers[dId]) {
+                uniqueDrivers[dId] = {
+                  id: dId,
+                  name: `${res.Driver.givenName} ${res.Driver.familyName}`.trim(),
+                  code: res.Driver.code || '',
+                  pos: '–',
+                  points: 0
+                }
+              }
             }
             if (res.position === "2") p2++
             else if (res.position === "3") p3++
           }
         }
+        
+        // Fahrer-WM-Positionen und Punkte aus dem Fahrerwertungs-Sensor laden
+        const driverStandingsEntity = Object.keys(props.hass?.states || {}).find(
+          key => key.includes('fahrerwertung') || key.includes('driver_standings')
+        ) || 'sensor.f1_dashboard_fahrerwertung'
+        
+        const driverState = props.hass?.states?.[driverStandingsEntity]
+        const standingsRaw = driverState?.attributes?.standings || []
+        
+        const driverList = Object.values(uniqueDrivers)
+        for (const drv of driverList) {
+          const idx = standingsRaw.findIndex(s => 
+            s.name.toLowerCase() === drv.name.toLowerCase() ||
+            (s.tla && drv.code && s.tla.toLowerCase() === drv.code.toLowerCase())
+          )
+          if (idx !== -1) {
+            drv.pos = idx + 1
+            drv.points = standingsRaw[idx].points
+          }
+        }
+        
+        // Nach Position sortieren
+        driverList.sort((a, b) => {
+          if (a.pos === '–') return 1
+          if (b.pos === '–') return -1
+          return a.pos - b.pos
+        })
+        
         p2Count.value = p2
         p3Count.value = p3
-        drivers.value = Array.from(driverSet)
+        teamDrivers.value = driverList
       }
     } catch (e) {
       console.error('Fehler beim Abrufen der Team-Ergebnisse:', e)
@@ -244,11 +283,25 @@ function countryEmoji(nationality) {
               <span class="dk">Herkunft</span>
               <span class="dv">{{ selectedTeam.nationality }} {{ countryEmoji(selectedTeam.nationality) }}</span>
             </div>
-            <div class="drow" v-if="drivers.length">
-              <span class="dk">Fahrer</span>
-              <span class="dv" style="text-align: right; max-width: 70%; line-height: 1.4;">{{ drivers.join(', ') }}</span>
+          </div>
+
+          <!-- Drivers Championship Section -->
+          <div class="detail-drivers-section" v-if="teamDrivers.length">
+            <div class="section-title">Fahrer</div>
+            <div class="drivers-list">
+              <div v-for="drv in teamDrivers" :key="drv.id" class="driver-item-row">
+                <span class="driver-badge-pos" :style="{ backgroundColor: teamColor(selectedTeam.teamId) }">
+                  {{ drv.pos }}.
+                </span>
+                <span class="driver-item-name-col">
+                  {{ drv.name }} <span class="driver-item-code-label">({{ drv.code }})</span>
+                </span>
+                <span class="driver-item-points-col">{{ drv.points }} <span class="pts-label">PKT</span></span>
+              </div>
             </div>
           </div>
+          
+          <p class="detail-extract" v-if="wikiSummary">{{ wikiSummary }}</p>
           
           <a v-if="selectedTeam.url" class="wiki-link" :href="selectedTeam.url" target="_blank" rel="noopener noreferrer">
             Wikipedia-Artikel &rarr;
@@ -454,9 +507,9 @@ function countryEmoji(nationality) {
 .detail-head {
   display: flex;
   align-items: center;
-  gap: 12px;
-  margin-bottom: 14px;
-  padding-right: 30px;
+  gap: 14px;
+  margin-bottom: 16px;
+  padding-right: 36px;
 }
 .detail-head-text {
   flex: 1;
@@ -466,7 +519,7 @@ function countryEmoji(nationality) {
 }
 .detail-accent {
   width: 5px;
-  height: 40px;
+  height: 52px;
   border-radius: 4px;
   flex: none;
 }
@@ -482,8 +535,8 @@ function countryEmoji(nationality) {
   letter-spacing: 0.02em;
 }
 .detail-avatar {
-  width: 50px;
-  height: 50px;
+  width: 90px;
+  height: 90px;
   border-radius: 50%;
   overflow: hidden;
   border: 2px solid var(--panel-border);
@@ -491,13 +544,73 @@ function countryEmoji(nationality) {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: var(--bg);
+  background: #ffffff;
 }
 .detail-avatar img {
   width: 100%;
   height: 100%;
   object-fit: contain;
   padding: 4px;
+}
+
+/* Drivers Section in Team Details */
+.detail-drivers-section {
+  margin-top: 14px;
+  margin-bottom: 16px;
+}
+.section-title {
+  font-size: 11px;
+  color: var(--text-dim);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 8px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  padding-bottom: 4px;
+}
+.drivers-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.driver-item-row {
+  display: flex;
+  align-items: center;
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.04);
+  border-radius: 8px;
+  padding: 8px 12px;
+  font-size: 13px;
+}
+.driver-badge-pos {
+  width: 22px;
+  height: 22px;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  font-weight: 700;
+  color: #fff;
+  margin-right: 10px;
+  flex-shrink: 0;
+}
+.driver-item-name-col {
+  flex: 1;
+  font-weight: 600;
+}
+.driver-item-code-label {
+  color: var(--text-dim);
+  font-size: 11px;
+  font-weight: normal;
+}
+.driver-item-points-col {
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+.pts-label {
+  font-size: 9px;
+  color: var(--text-dim);
+  margin-left: 1px;
 }
 
 /* Compact Stats Grid */
@@ -598,6 +711,19 @@ function countryEmoji(nationality) {
 }
 .wiki-link:hover {
   background: rgba(122, 176, 255, 0.14);
+}
+
+.detail-extract {
+  font-size: 11.5px;
+  color: var(--text-dim);
+  line-height: 1.5;
+  margin-top: 10px;
+  margin-bottom: 12px;
+  background: rgba(0, 0, 0, 0.12);
+  border: 1px solid var(--panel-border);
+  border-radius: 8px;
+  padding: 10px 12px;
+  text-align: left;
 }
 
 @media (max-width: 360px) {
