@@ -6,14 +6,25 @@
 
 ![F1 Dashboard Card Vorschau](images/preview.png)
 
-Vier eigenständige, dunkeldesigned Custom Cards für ein **Formel-1-Dashboard** in Home Assistant. **v0.3.0** bringt eine **Canvas-basierte Live-Streckenkarte** mit Echtzeit-Fahrzeugpositionen direkt in die Session Card.
+Vier eigenständige, dunkeldesignte Custom Cards für ein **Formel-1-Dashboard** in Home Assistant. **v0.4.0** bringt ein komplettes **Redesign der Rennwochenende-Karte** sowie einen Wechsel der Codebasis auf **Vue 3** (Single-File-Components, `.ce.vue`) für schnellere Entwicklung und einfacheres Styling.
 
 | Karte | Element | Zeigt |
 |-------|---------|-------|
 | Fahrerwertung | `f1-drivers-card` | WM-Stand der Fahrer, Teamfarben, Klick-Details, Wikipedia-Link |
 | Konstrukteurswertung | `f1-constructors-card` | WM-Stand der Teams, Teamfarben, Klick-Details |
-| Rennwochenende | `f1-session-card` | Streckenlayout (SVG), Fakten, Countdown, Session-Zeitplan, Wetter – schaltet live auf **Streckenkarte + Timing Tower** um |
+| Rennwochenende | `f1-session-card` | Streckenlayout (SVG), Fakten, Countdown, Session-Zeitplan, Wetter am Circuit |
 | Letztes Rennen | `f1-race-recap-card` | Ergebnis (inkl. DNF/DSQ), Reifenstrategie, Boxenstopps (OpenF1) |
+
+---
+
+## Was ist neu in v0.4.0?
+
+- 🧩 **Technik-Wechsel auf Vue 3**: Alle vier Karten sind jetzt Vue Single-File-Components (`.ce.vue`) statt Vanilla-JS/Lit. Das macht die Weiterentwicklung wartbarer, ändert aber nichts an der Nutzung in YAML.
+- 🎨 **Rennwochenende-Karte (`f1-session-card`) komplett neu gestaltet**: neues „Carbon-Dark"-Design mit F1-Rot-Akzenten, kollabierbare Sections für Zeitplan und Streckenbedingungen, LIVE/ANSTEHEND-Badge im Header.
+- ☀️ **Wetter läuft jetzt direkt im Frontend**: Die Karte holt die Vorhersage selbst live via Open-Meteo (anhand der Streckenkoordinaten) – ein separater Wetter-Sensor ist für die Grundfunktion nicht mehr nötig. Angezeigt wird eine kompakte 3-Tages-Übersicht (Fr/Sa/So des Rennwochenendes).
+- ⏱️ Countdown und Session-Zeitplan laufen weiterhin über den bestehenden `entity`-Sensor (`sensor.f1_dashboard_session_status`).
+
+> **Wichtig zu Live-Timing:** Die in v0.3.0 eingeführte Canvas-Live-Streckenkarte mit Echtzeit-Fahrzeugpositionen sowie der Timing Tower sind im v0.4.0-Redesign der Session Card **nicht mehr Teil der Standardansicht**. Die zugehörigen Sensoren (`live_track_entity`, `live_timing_entity`, `live_positions_entity`) aus der [F1 Dashboard Integration](https://github.com/alexw8702/ha-f1-dashboard) existieren weiterhin und lassen sich über Entwickler-Tools einsehen – sie werden aktuell aber nicht mehr von dieser Card konsumiert. Wer Live-Tracking benötigt, sollte vorerst bei v0.3.0 bleiben oder die Sensordaten mit eigenen Karten/Templates visualisieren.
 
 ---
 
@@ -25,10 +36,10 @@ Diese Karten brauchen passende Sensoren mit bestimmten Attributen. Die einfachst
 
 ## Installation
 
-1. **HACS → Frontend** (bzw. „Dashboard“) → oben rechts ⋮ → **Benutzerdefinierte Repositories**
+1. **HACS → Frontend** (bzw. „Dashboard") → oben rechts ⋮ → **Benutzerdefinierte Repositories**
 2. Diese Repo-URL einfügen: `https://github.com/alexw8702/ha-f1-dashboard-card`
 3. Kategorie: **Dashboard/Plugin** → **Hinzufügen**
-4. „F1 Dashboard Card“ suchen → **Herunterladen**
+4. „F1 Dashboard Card" suchen → **Herunterladen**
 5. **Browser hart neu laden** (Strg+Shift+R)
 
 > HACS legt die Ressource automatisch an. Falls nicht, unter *Einstellungen → Dashboards → ⋮ → Ressourcen* prüfen:
@@ -69,41 +80,35 @@ max: 10          # optional
 
 ---
 
-### Rennwochenende (mit Live-Streckenkarte — v0.3.0)
+### Rennwochenende (Redesign v0.4.0)
 
 ```yaml
 type: custom:f1-session-card
 entity: sensor.f1_dashboard_session_status
-live_track_entity: sensor.f1_dashboard_live_streckenstatus
-live_timing_entity: sensor.f1_dashboard_live_timing_tower
-live_positions_entity: sensor.f1_dashboard_live_track_positionen  # NEU: Live-Streckenkarte
-weather_entity: sensor.f1_dashboard_wetter_vorhersage           # optional
 ```
 
-**Features (normal, außerhalb Sessions):**
-- Streckenlayout als SVG (alle 22 Strecken 2026)
-- Streckenfakten: Länge, Runden, Kurven, Aktiv-Aero, Höhenmeter, Rundenrekord
-- Countdown zur nächsten Session
-- Session-Zeitplan (FP1–3, Quali, Sprint, Rennen) mit Echtzeit-Highlights
-- Wetter-Vorhersage (4 Tage + Stundenverlauf Renntag)
+Das ist bereits die vollständige Konfiguration – weitere Optionen sind für diese Karte aktuell nicht vorgesehen, da Wetter direkt im Frontend geladen wird.
 
-**Live-Features (während Sessions):**
-- **Live-Streckenkarte (Canvas)** mit allen 22 Fahrern
-  - Fahrzeuge als Kreise in Teamfarbe + Startnummer + Fahrerkürzel
-  - Fahrspuren zeigen automatisch das Streckenlayout (keine Vorlagen nötig!)
-  - Sanfte Interpolation zwischen den Sekunden-Updates
-  - **Flaggen-Rendering**:
-    - 🟢 **Grün**: Normal
-    - 🟡 **Gelb**: Normal
-    - 🚗 **Safety Car**: Positionen eingefroren, 35% gedimmt, „SC“-Overlay
-    - 🚨 **Rote Flagge**: Alle Fahrer ausgeblendet, rotes Overlay
-    - 🟡 **VSC**: Positionen eingefroren, gedimmt, „VSC“-Overlay
-  - Nur Fahrer mit Status `OnTrack` sichtbar
-  - Performance: DPR-Skalierung, ResizeObserver, rAF pausiert off-screen
-  - Persistente Live-DOM: Canvas überlebt HA-Updates
+**Features:**
+- Streckenlayout als SVG (alle 22 Strecken 2026) mit Start/Ziel-Linie und Fahrtrichtung
+- Streckenfakten: Länge, Runden, Kurven, Rundenrekord, Höhenmeter
+- LIVE/ANSTEHEND-Statusbadge im Header
+- Live-Countdown zur nächsten Session
+- Kollabierbarer Session-Zeitplan (FP1–3, Quali, Sprint, Rennen) mit Hervorhebung vergangener/kommender Termine
+- Kollabierbare Streckenbedingungen: 3-Tages-Wetterübersicht (Fr/Sa/So) direkt von Open-Meteo, inkl. Temperatur, Regenwahrscheinlichkeit und Wind
 
-- **Timing Tower**: Position, Team, Gap, letzte Rundenzeit, Box-/Out-Status (unterhalb Karte)
-- **Streckenstatus-Banner**: Live-Flaggenstatus mit Farb-Coding
+<details>
+<summary>Ältere Live-Timing-Sensoren (optional, derzeit ohne Card-Anbindung)</summary>
+
+Die F1 Dashboard Integration stellt weiterhin folgende Live-Sensoren bereit, die aktuell **nicht** von `f1-session-card` genutzt werden, aber z. B. für eigene Automationen oder Templates interessant sein können:
+
+- `sensor.f1_dashboard_live_streckenstatus` – Live-Flaggenstatus (Grün/Gelb/SC/Rot/VSC)
+- `sensor.f1_dashboard_live_timing_tower` – Live-Timing (Position, Gap, Rundenzeit, Box-Status)
+- `sensor.f1_dashboard_live_track_positionen` – Echtzeit-Fahrzeugpositionen (X/Y/Z, Bounds)
+
+Diese Sensoren sind nur während aktiver Sessions verfügbar und lassen sich unter *Entwickler-Tools → Zustände* einsehen.
+
+</details>
 
 ---
 
@@ -134,10 +139,8 @@ entity: sensor.f1_dashboard_rennrueckblick
 | Option | Typ | Erforderlich | Default | Beschreibung |
 |--------|-----|--------------|---------|-------------|
 | `entity` | string | ✅ | — | Session-Status-Sensor |
-| `live_track_entity` | string | ❌ | — | Live-Streckenstatus (Flags) |
-| `live_timing_entity` | string | ❌ | — | Live-Timing-Tower (Fahrer-Liste) |
-| `live_positions_entity` | string | ❌ | — | **[NEU v0.3.0]** Live-Track-Positionen (X/Y/Z, Bounds, Status) |
-| `weather_entity` | string | ❌ | — | Wetter-Vorhersage-Sensor |
+
+Weitere, aus v0.3.0 bekannte Optionen (`live_track_entity`, `live_timing_entity`, `live_positions_entity`, `weather_entity`) werden von der neu gestalteten Karte aktuell nicht mehr ausgewertet – Wetter wird automatisch geladen, Live-Timing/-Streckenkarte sind vorübergehend nicht Teil dieser Card.
 
 ### Minimale Konfiguration
 
@@ -146,87 +149,7 @@ type: custom:f1-session-card
 entity: sensor.f1_dashboard_session_status
 ```
 
-→ Zeigt nur Streckenlayout, Fakten, Countdown
-
-### Vollständige Konfiguration (empfohlen)
-
-```yaml
-type: custom:f1-session-card
-entity: sensor.f1_dashboard_session_status
-live_track_entity: sensor.f1_dashboard_live_streckenstatus
-live_timing_entity: sensor.f1_dashboard_live_timing_tower
-live_positions_entity: sensor.f1_dashboard_live_track_positionen
-weather_entity: sensor.f1_dashboard_wetter_vorhersage
-```
-
-→ Komplette Live-Unterstützung mit Streckenkarte + Timing + Wetter
-
----
-
-## Live-Streckenkarte verstehen (v0.3.0)
-
-### Wie funktioniert es?
-
-1. **Positionsdaten**: Die Integration (`ha-f1-dashboard` v0.3.0) abonniert das `Position.z`-Topic des F1-Live-Timing-Feeds und dekodiert die base64/DEFLATE-Payloads
-2. **Sensor**: Neue Entity `sensor.f1_dashboard_live_track_positionen` speichert:
-   - `positions[]`: Array mit allen 22 Fahrern (X, Y, Startnummer, TLA, Teamfarbe, Status)
-   - `bounds`: Auto-berechnete Min/Max-Grenzen
-   - `track_status`: Aktueller Flaggenstatus
-
-3. **Rendering**: Die Card liest den Sensor, erstellt ein Canvas und rendert:
-   - Fahrzeug-Kreise in Teamfarbe + Nummer
-   - Trail-Canvas (Fahrspuren) mit Interpolation zwischen Updates
-   - Flags-Overlay je nach `track_status`
-
-### Flaggen-Logik
-
-| Status | Rendering | Overlay |
-|--------|-----------|----------|
-| 1 (Grün) | Normal | Keine |
-| 2 (Gelb) | Normal | Keine |
-| 4 (SC) | 35% Opacity, eingefroren | "🚗 SAFETY CAR" |
-| 5 (Rot) | Fahrer ausgeblendet | "🚨 RED FLAG" |
-| 6 (VSC) | 35% Opacity, eingefroren | "🟡 VSC" |
-| 7 (VSC-Ende) | Normal | Keine |
-
-### Performance-Optimierungen
-
-- **ResizeObserver**: Karte passt sich automatisch an Viewport an
-- **IntersectionObserver**: rAF pausiert, wenn Karte off-screen
-- **DPR-Skalierung**: Scharfes Rendering auf High-DPI-Displays
-- **Trail-Redraw bei Bounds-Änderung**: Nur wenn nötig
-- **Teleport-Filter**: Sprünge > 20% Canvas-Diagonale werden übersprungen (vermeidet Fehler)
-
----
-
-## Troubleshooting
-
-### Live-Streckenkarte bleibt leer
-
-1. **Session aktiv?** Live-Karte zeigt nur während aktiven Sessions (FP1–Rennen)
-2. **Sensor konfiguriert?** Card-YAML sollte `live_positions_entity: sensor.f1_dashboard_live_track_positionen` haben
-3. **Browser hart neu laden**: Strg+Shift+R
-4. **Sensor-Attribute prüfen**:
-   - Im HA-Dashboard: **Entwickler-Tools → Zustände → `sensor.f1_dashboard_live_track_positionen`**
-   - Sollte ein Array in `positions` mit Einträgen zeigen
-5. **HA-Logs**: `custom_components.f1_dashboard` auf Debug setzen und nach Fehlern in Position.z suchen
-
-### Karte zeigt nur Fakten, kein Live-Content
-
-- Vermutlich keine Session aktiv. Live-Daten sind nur während FP1–Rennen verfügbar
-- Oder: `live_timing_entity` ist nicht konfiguriert (nur Timing Tower wird dann nicht gezeigt)
-
-### Fahrzeuge animieren nicht flüssig
-
-- Interpolation läuft auf dem Client. Weniger CPU-Last ermöglicht flüssigere Animation
-- Canvas wird mit requestAnimationFrame gerendert (60 FPS möglich)
-- **Netzwerklatenz**: Bei schlechtem Signal können Updates ausfallen
-
-### Trail überlappt sich oder sieht falsch aus
-
-- Position.z-Daten haben möglicherweise Anomalien in dieser Runde
-- **Workaround**: Page neu laden oder auf nächste Runde warten
-- [Issue öffnen](https://github.com/alexw8702/ha-f1-dashboard-card/issues) mit Session-Details
+→ Zeigt Streckenlayout, Fakten, Countdown, Zeitplan und Wetter (automatisch)
 
 ---
 
@@ -238,10 +161,6 @@ title: Formel 1
 cards:
   - type: custom:f1-session-card
     entity: sensor.f1_dashboard_session_status
-    live_track_entity: sensor.f1_dashboard_live_streckenstatus
-    live_timing_entity: sensor.f1_dashboard_live_timing_tower
-    live_positions_entity: sensor.f1_dashboard_live_track_positionen
-    weather_entity: sensor.f1_dashboard_wetter_vorhersage
 
   - type: horizontal-stack
     cards:
@@ -270,8 +189,14 @@ cards:
 
 ## Changelog
 
+### v0.4.0 (Vue-Redesign)
+- 🧩 Codebasis auf **Vue 3** Single-File-Components (`.ce.vue`) umgestellt
+- 🎨 `f1-session-card` komplett neu designt: Carbon-Dark-Theme, kollabierbare Sections, LIVE-Badge
+- ☀️ Wetter wird direkt im Frontend via Open-Meteo geladen (kein separater Wetter-Sensor mehr nötig für die Grundfunktion), kompakte 3-Tages-Ansicht
+- ⚠️ Live-Streckenkarte (Canvas) und Timing Tower vorübergehend nicht mehr in der Session Card enthalten (Sensoren der Integration bleiben bestehen)
+
 ### v0.3.0 (Live-Streckenkarte)
-- ✨ **Canvas-basierte Live-Streckenkarte** in der Session Card
+- ✨ Canvas-basierte Live-Streckenkarte in der Session Card
 - 🎨 Fahrzeuge als Kreise in Teamfarbe + Nummer/TLA, sanfte Interpolation
 - 🚩 Flaggen-Logik: Rot blendet aus, SC/VSC dimmt + Overlay, Trail pausiert
 - 📍 Automatische Bounds-Berechnung, keine vordefinierten Strecken nötig
