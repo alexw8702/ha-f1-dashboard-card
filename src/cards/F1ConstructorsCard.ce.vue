@@ -239,9 +239,15 @@ function countryEmoji(nationality) {
 
         <!-- Punkte + Differenz + Siege -->
         <div class="team-stats">
-          <span class="points">{{ team.points }}</span>
-          <span class="diff" v-if="team.diff > 0">-{{ team.diff }}</span>
-          <span class="wins" v-if="team.wins > 0">🏆 {{ team.wins }}</span>
+          <div class="points-row">
+            <span class="points">{{ team.points }}</span>
+            <span class="pts-unit">PTS</span>
+          </div>
+          <div class="stats-sub">
+            <span class="diff" v-if="team.diff > 0">-{{ team.diff }}</span>
+            <span class="sub-sep" v-if="team.diff > 0 && team.wins > 0">•</span>
+            <span class="wins" v-if="team.wins > 0">🏆 {{ team.wins }}</span>
+          </div>
         </div>
 
         <!-- Team-Drivers Column (Sichtbar auf größeren Bildschirmen) -->
@@ -519,21 +525,43 @@ function countryEmoji(nationality) {
 
 .team-stats {
   flex-shrink: 0;
-  display: flex; gap: 8px; align-items: center;
-  min-width: 80px;
-  justify-content: flex-end;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  justify-content: center;
+  width: 80px;
+  justify-self: end;
+}
+.points-row {
+  display: flex;
+  align-items: baseline;
+  gap: 2px;
+  line-height: 1.2;
 }
 .points {
   font-size: 15px; font-weight: 700;
-  min-width: 32px; text-align: right;
+}
+.pts-unit {
+  font-size: 9px; font-weight: 500; color: var(--text-dim);
+}
+.stats-sub {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 10.5px; color: var(--text-dim);
+  line-height: 1.2;
+  margin-top: 1px;
+  height: 14px;
 }
 .diff {
-  font-size: 11px; color: var(--text-dim);
-  min-width: 32px; text-align: right;
+  color: var(--text-dim);
 }
 .wins {
-  font-size: 10px; color: #ffd700;
-  min-width: 36px; text-align: right;
+  color: #ffd700;
+  font-size: 10px;
+}
+.sub-sep {
+  color: rgba(255, 255, 255, 0.2);
 }
 
 .foot {
@@ -824,5 +852,6 @@ function countryEmoji(nationality) {
 
 @container (max-width: 360px) {
   .team-info { width: 90px; }
+  .team-stats { width: 60px; }
 }
 </style>
