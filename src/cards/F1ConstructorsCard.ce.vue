@@ -346,7 +346,7 @@ function countryEmoji(nationality) {
 </template>
 
 <style>
-:host { display: block; }
+:host { display: block; container-type: inline-size; }
 * { box-sizing: border-box; margin: 0; padding: 0; }
 
 .card {
@@ -418,7 +418,7 @@ function countryEmoji(nationality) {
   display: none;
 }
 
-@media (min-width: 600px) {
+@container (min-width: 600px) {
   .team-row {
     display: grid;
     grid-template-columns: 120px 1fr 100px 160px;
@@ -822,7 +822,7 @@ function countryEmoji(nationality) {
   text-align: left;
 }
 
-@media (max-width: 360px) {
+@container (max-width: 360px) {
   .team-info { width: 90px; }
 }
 </style>

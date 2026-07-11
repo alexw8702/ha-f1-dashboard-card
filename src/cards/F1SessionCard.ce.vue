@@ -242,7 +242,7 @@ const updatedLabel = computed(() =>
 </template>
 
 <style>
-:host { display: block; }
+:host { display: block; container-type: inline-size; }
 * { box-sizing: border-box; margin: 0; padding: 0; }
 
 .card {
@@ -397,7 +397,7 @@ const updatedLabel = computed(() =>
   flex-direction: column;
 }
 
-@media (min-width: 600px) {
+@container (min-width: 600px) {
   .sections-grid {
     display: grid;
     grid-template-columns: 1fr 1fr;
@@ -411,7 +411,7 @@ const updatedLabel = computed(() =>
   .hero-track { max-width: 220px; }
 }
 
-@media (max-width: 420px) {
+@container (max-width: 420px) {
   .hero { flex-direction: column-reverse; }
   .hero-track { max-width: 150px; align-self: center; }
 }

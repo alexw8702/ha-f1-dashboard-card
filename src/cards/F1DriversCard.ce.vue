@@ -294,7 +294,7 @@ function countryEmoji(nationality) {
 </template>
 
 <style>
-:host { display: block; }
+:host { display: block; container-type: inline-size; }
 * { box-sizing: border-box; margin: 0; padding: 0; }
 
 .card {
@@ -350,7 +350,7 @@ function countryEmoji(nationality) {
   position: relative; z-index: 1;
   display: flex; flex-direction: column; gap: 8px;
 }
-@media (min-width: 600px) {
+@container (min-width: 600px) {
   .rankings {
     display: grid;
     grid-template-rows: repeat(var(--row-count, 11), auto);
@@ -668,7 +668,7 @@ function countryEmoji(nationality) {
   text-align: left;
 }
 
-@media (max-width: 360px) {
+@container (max-width: 360px) {
   .driver-info { width: 100px; }
   .name { font-size: 12px; }
   .driver-stats { min-width: 60px; }

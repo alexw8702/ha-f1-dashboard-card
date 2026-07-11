@@ -153,7 +153,7 @@ function tireName(tire) {
 </template>
 
 <style>
-:host { display: block; }
+:host { display: block; container-type: inline-size; }
 * { box-sizing: border-box; margin: 0; padding: 0; }
 
 .card {
@@ -211,7 +211,7 @@ function tireName(tire) {
   gap: 16px;
 }
 
-@media (min-width: 600px) {
+@container (min-width: 600px) {
   .recap-content {
     display: grid;
     grid-template-columns: 1fr 1fr;
@@ -340,7 +340,7 @@ section h2 {
   letter-spacing: 0.12em; text-transform: uppercase;
 }
 
-@media (max-width: 360px) {
+@container (max-width: 360px) {
   .podium { gap: 6px; }
   .podium-place { padding: 8px 4px; }
   .result-row { grid-template-columns: 24px 1fr 48px; }
