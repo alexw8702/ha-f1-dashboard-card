@@ -5,7 +5,7 @@
  * Datenfluss: HA-Sensor (session_status) als Trigger → Streckenfakten lokal,
  * Wetter direkt via Open-Meteo, Live-Daten über HA-Sensoren.
  */
-import { computed, ref, onMounted, onUnmounted } from 'vue'
+import { computed, ref, onMounted, onUnmounted, watch, nextTick } from 'vue'
 import { CIRCUITS } from '../data/circuits.js'
 import { useWeather, weatherIcon } from '../composables/useWeather.js'
 
@@ -26,6 +26,40 @@ const activeSession = computed(() => sessionState.value?.attributes?.active_sess
 
 const circuit = computed(() => nextRace.value?.Circuit ?? null)
 const circuitData = computed(() => CIRCUITS[circuit.value?.circuitId] ?? null)
+
+/* ---------- Streckenkarte: enger Zuschnitt + Rotation für maximale Größe ---------- */
+/* Manche Strecken (z.B. Spa) sind in ihrer Outline sehr hochformatig, während der
+ * Anzeigebereich (Hero-Header) eher breit ist - das lässt die Karte winzig und
+ * mittig in viel Leerraum wirken. Statt pro Strecke von Hand eine Bounding-Box zu
+ * pflegen, wird sie zur Laufzeit per SVG getBBox() gemessen: hochformatige Outlines
+ * (Höhe > Breite * 1.15) werden um 90° um ihren eigenen Mittelpunkt gedreht, und das
+ * viewBox wird eng auf die (ggf. gedrehte) Bounding-Box zugeschnitten, statt das feste
+ * 500x500-Basis-viewBox zu nutzen. So skaliert preserveAspectRatio="meet" die Strecke
+ * verzerrungsfrei auf die maximal mögliche Größe im verfügbaren Bereich.
+ */
+const trackGroup = ref(null)
+const trackFit = ref(null)
+
+async function updateTrackFit() {
+  trackFit.value = null // zurücksetzen, damit die neue Strecke ungedreht gemessen wird
+  await nextTick()
+  const el = trackGroup.value
+  if (!el || typeof el.getBBox !== 'function') return
+  let bbox
+  try { bbox = el.getBBox() } catch { return }
+  if (!bbox || !bbox.width || !bbox.height) return
+  const rotate = bbox.height > bbox.width * 1.15
+  const pad = Math.max(bbox.width, bbox.height) * 0.04
+  const cx = bbox.x + bbox.width / 2
+  const cy = bbox.y + bbox.height / 2
+  const w = (rotate ? bbox.height : bbox.width) + pad * 2
+  const h = (rotate ? bbox.width : bbox.height) + pad * 2
+  trackFit.value = {
+    viewBox: `${cx - w / 2} ${cy - h / 2} ${w} ${h}`,
+    transform: rotate ? `rotate(90 ${cx} ${cy})` : null,
+  }
+}
+watch(circuitData, updateTrackFit, { immediate: true })
 
 /* ---------- Zeitplan ---------- */
 const SESSION_LABELS = [
@@ -153,10 +187,12 @@ const updatedLabel = computed(() =>
           <span class="badge" :class="statusLabel.cls">{{ statusLabel.text }}</span>
         </div>
         <div class="hero-track" v-if="circuitData">
-          <svg :viewBox="circuitData.vb" preserveAspectRatio="xMidYMid meet">
-            <path :d="circuitData.outline" class="track-outline" />
-            <path v-if="circuitData.sf" :d="circuitData.sf" class="track-sf" />
-            <path v-if="circuitData.arrow" :d="circuitData.arrow" class="track-arrow" />
+          <svg :viewBox="trackFit?.viewBox ?? circuitData.vb" preserveAspectRatio="xMidYMid meet">
+            <g ref="trackGroup" :transform="trackFit?.transform">
+              <path :d="circuitData.outline" class="track-outline" />
+              <path v-if="circuitData.sf" :d="circuitData.sf" class="track-sf" />
+              <path v-if="circuitData.arrow" :d="circuitData.arrow" class="track-arrow" />
+            </g>
           </svg>
         </div>
       </header>

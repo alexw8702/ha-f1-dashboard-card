@@ -2,6 +2,7 @@
 
 - **Strecken-Bedingungen (Wetter):** Bei Kartenbreiten ab 680 px wirkte das Wetterfeld winzig und zentriert in einem großen leeren Panel, weil die Tageskarten auf einspaltige, vertikal zentrierte Mini-Boxen umschalteten statt die gewonnene Breite zu nutzen. Die Tageskarten sind jetzt horizontale Zeilen (Label, Icon, Temperatur, Regen, Wind nebeneinander), die die volle Panel-Breite ausfüllen.
 - Die Zweispalten-Schwelle für Zeitplan/Wetter wurde von 600 px auf 680 px angehoben, da im Bereich 600–680 px sowohl die Zeitplan-Tabelle (Datum brach um) als auch die Wetter-Details (Windangabe brach um) zu eng wurden. Datum/Zeit-Zellen und Wetter-Details brechen jetzt nicht mehr um (`white-space: nowrap`).
+- **Streckenkarte (SVG-Outline):** Hochformatige Streckenumrisse (z.B. Spa, Villeneuve, Yas Marina) wirkten winzig und mittig in viel Leerraum, weil der Anzeigebereich eher breit als hoch ist. Die Bounding-Box jeder Strecke wird jetzt zur Laufzeit per `getBBox()` gemessen: Umrisse, die deutlich höher als breit sind, werden automatisch um ihren Mittelpunkt um 90° gedreht, und das SVG-viewBox wird eng auf die (ggf. gedrehte) Bounding-Box zugeschnitten statt das feste 500×500-Basis-viewBox zu nutzen. Dadurch skaliert jede Strecke verzerrungsfrei auf die maximal mögliche Größe im verfügbaren Bereich — automatisch für alle 22 Strecken, ohne pro Strecke gepflegte Werte.
 
 # v0.6.0 — Responsive Design + Validierung
 
