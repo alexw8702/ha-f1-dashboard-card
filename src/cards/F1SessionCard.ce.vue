@@ -480,8 +480,11 @@ const updatedLabel = computed(() =>
 @container (max-width: 460px) {
   /* Sobald .hero umbricht (organisch via flex-wrap, siehe oben), soll die
    * Streckenkarte weiterhin oberhalb des Titels erscheinen wie zuvor - reine
-   * Reihenfolge-/Größenkosmetik, nicht die Umbruch-Entscheidung selbst. */
-  .hero-track { order: -1; align-self: center; width: 100%; max-width: 240px; height: auto; }
+   * Reihenfolge-/Größenkosmetik, nicht die Umbruch-Entscheidung selbst.
+   * max-width ist jetzt relativ (75%) statt eines festen Pixelwerts, damit die
+   * Karte den frei gewordenen Platz tatsächlich ausfüllt statt künstlich klein
+   * zu bleiben; margin:auto zentriert sie in ihrer eigenen (umgebrochenen) Zeile. */
+  .hero-track { order: -1; width: auto; max-width: 75%; height: auto; margin: 0 auto; }
   .hero-track svg { width: 100%; height: auto; }
   /* Die vier übrigen Werte teilen sich gleichmäßig die Zeilenbreite, statt anhand
    * ihrer Mindestbreite einzeln umzubrechen - so bleiben sie zu viert in einer Zeile,
@@ -490,5 +493,7 @@ const updatedLabel = computed(() =>
   .chip-value { font-size: 13px; }
   .chip-label { font-size: 8px; }
   .chip-record { flex: 1 1 100%; border-right: none; border-top: 1px solid var(--panel-border); }
+  /* Streifen selbst zentrieren statt linksbündig (inline-flex sitzt sonst am Zeilenanfang) */
+  .chips { display: flex; width: fit-content; max-width: 100%; margin: 18px auto 0; }
 }
 </style>

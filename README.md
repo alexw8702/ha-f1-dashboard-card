@@ -195,6 +195,7 @@ cards:
 - 🏁 **Streckenkarte automatisch rotiert & maximal skaliert.** Hochformatige Streckenumrisse (Spa, Villeneuve, Yas Marina, ...) werden zur Laufzeit vermessen und bei Bedarf um 90° gedreht, das SVG-viewBox wird eng auf die Strecke zugeschnitten. Ergebnis: jede Strecke nutzt den verfügbaren Platz im Header maximal aus, ganz ohne pro Strecke gepflegte Werte.
 - 📊 **Streckenfakten kompakter.** Die fünf Fakten-Boxen (km, Runden, Kurven, Rundenrekord, Höhenmeter) sind jetzt ein einziger kompakter Streifen mit Trennlinien statt fünf einzelner Boxen, die sich bei breiten Karten auf die volle Restbreite streckten. Mobil steht der Rundenrekord zentriert unter den anderen vier Werten.
 - 📐 **Streckenkarte füllt die volle Höhe, Header-Umbruch folgt der echten Bildgröße.** Die Streckenkarte war bisher auf eine feste Breite begrenzt und ließ bei kurzen/breiten Umrissen Leerraum darunter. Sie nutzt jetzt per `aspect-ratio` + `align-items: stretch` die volle Höhe der Titelspalte und wird dadurch größer. Der Umbruch zwischen Titel und Streckenkarte entscheidet sich außerdem anhand der tatsächlichen (gemessenen) Bildgröße statt eines festen Pixel-Werts.
+- 🎯 **Mobil zentriert.** Streckenkarte und Fakten-Streifen standen mobil trotz Umbruch linksbündig und die Karte war zusätzlich künstlich auf 240px begrenzt. Beide sind jetzt zentriert, die Streckenkarte nutzt bis zu 75% der verfügbaren Breite statt eines festen Pixelwerts.
 
 ### v0.6.0
 - ✅ **Robustere Session Card:** Der LIVE-Badge bei gesetztem `active_session` wird nun mit einem eigenen JSDOM-Test geprüft.
