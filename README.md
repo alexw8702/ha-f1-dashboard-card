@@ -198,6 +198,7 @@ cards:
 - 📱 **Responsive Design (Kapitel 2)**:
   * **Zweispaltige Fahrerwertung**: Auf Tablets und Desktops (Breite ab 600px) teilt sich die Fahrerwertungs-Tabelle automatisch genau in der Hälfte und wird zweispaltig nebeneinander dargestellt, um vertikalen Platz zu sparen.
   * **Fahrer-Details in Konstrukteuren**: In der Konstrukteurswertung wird auf größeren Bildschirmen eine zweite Spalte mit den Fahrern des jeweiligen Teams inklusive deren Meisterschafts-Position und Punkten eingeblendet.
+  * **Team-Historie mit Spalten-Headern**: Die Team-Historie (letzte 5 Rennen) in der Detailkarte zeigt nun die Fahrer-Kürzel (TLA) als Spalten-Header, und die Positions-Badges entsprechen präzise den Ergebnissen der einzelnen Fahrer (DNF- und leere Zustände sauber abgefangen).
   * **Session-Karte zweispaltig**: Countdown + Zeitplan links, Strecken-Bedingungen (Wetter) rechts – auf breiteren Bildschirmen nebeneinander statt gestapelt.
   * **Letztes-Rennen-Karte zweispaltig**: Podium + Klassement links, Reifen-Strategie + Boxenstopps rechts – auf breiteren Viewports nebeneinander.
 

@@ -68,8 +68,10 @@ watch(selectedTeam, async (newVal) => {
     try {
       const fetchSeason = season.value || 'current'
       const response = await fetch(`https://api.jolpi.ca/ergast/f1/${fetchSeason}/constructors/${newVal.teamId}/results.json`)
+      if (selectedTeam.value?.teamId !== newVal.teamId) return
       if (response.ok) {
         const data = await response.json()
+        if (selectedTeam.value?.teamId !== newVal.teamId) return
         const races = data.MRData?.RaceTable?.Races || []
         let p2 = 0
         let p3 = 0
@@ -79,7 +81,7 @@ watch(selectedTeam, async (newVal) => {
         
         for (const race of races) {
           const results = race.Results || []
-          const positions = []
+          const raceResultsByDriver = {}
           for (const res of results) {
             if (res.Driver) {
               const dId = res.Driver.driverId
@@ -92,36 +94,28 @@ watch(selectedTeam, async (newVal) => {
                   points: 0
                 }
               }
+              
+              // DNF check
+              const status = res.status || ''
+              const posText = res.positionText || ''
+              const retired = posText === 'R' || (status !== 'Finished' && !status.includes('Lap') && !status.includes('Laps'))
+              if (retired) {
+                dnfVal++
+                raceResultsByDriver[dId] = 'R'
+              } else {
+                raceResultsByDriver[dId] = res.position || '–'
+              }
             }
             if (res.position === "2") p2++
             else if (res.position === "3") p3++
-            
-            // DNF check
-            const status = res.status || ''
-            const posText = res.positionText || ''
-            const retired = posText === 'R' || (status !== 'Finished' && !status.includes('Lap') && !status.includes('Laps'))
-            if (retired) {
-              dnfVal++
-              positions.push('R')
-            } else {
-              positions.push(res.position || '–')
-            }
           }
           
           raceList.push({
             round: parseInt(race.round || '0'),
             name: race.raceName || 'Rennen',
-            positions: positions.sort((a, b) => {
-              if (a === 'R') return 1
-              if (b === 'R') return -1
-              return a - b
-            })
+            resultsByDriver: raceResultsByDriver
           })
         }
-        
-        // Sort and slice last 5 races
-        raceList.sort((a, b) => a.round - b.round)
-        const last5 = raceList.slice(-5).reverse()
         
         // Fahrer-WM-Positionen und Punkte aus dem Fahrerwertungs-Sensor laden
         const driverStandingsEntity = Object.keys(props.hass?.states || {}).find(
@@ -150,6 +144,22 @@ watch(selectedTeam, async (newVal) => {
           return a.pos - b.pos
         })
         
+        const d1 = driverList[0]?.id || ''
+        const d2 = driverList[1]?.id || ''
+        
+        // Sort and slice last 5 races
+        raceList.sort((a, b) => a.round - b.round)
+        const last5 = raceList.slice(-5).reverse().map(race => {
+          const positions = []
+          if (d1) positions.push(race.resultsByDriver[d1] || '–')
+          if (d2) positions.push(race.resultsByDriver[d2] || '–')
+          return {
+            round: race.round,
+            name: race.name,
+            positions
+          }
+        })
+        
         p2Count.value = p2
         p3Count.value = p3
         teamDrivers.value = driverList
@@ -173,17 +183,11 @@ function getPosClass(pos) {
   return 'pos-normal'
 }
 
-const driverStandingsEntity = computed(() => {
-  return Object.keys(props.hass?.states || {}).find(
+const driverStandings = computed(() => {
+  const driverStandingsEntity = Object.keys(props.hass?.states || {}).find(
     key => key.includes('fahrerwertung') || key.includes('driver_standings')
   ) || 'sensor.f1_dashboard_fahrerwertung'
-})
-
-const driverState = computed(() =>
-  props.hass?.states?.[driverStandingsEntity.value] || null)
-
-const driverStandings = computed(() => {
-  return driverState.value?.attributes?.standings || []
+  return props.hass?.states?.[driverStandingsEntity]?.attributes?.standings || []
 })
 
 const teams = computed(() => {
@@ -195,8 +199,8 @@ const teams = computed(() => {
     .sort((a, b) => (b.points || 0) - (a.points || 0))
     .map((t, i) => {
       const leg = rawLegacy.find(l => 
-        (l.Constructor?.constructorId === t.constructorId) ||
-        (l.Constructor?.name.toLowerCase() === t.name.toLowerCase())
+        l.Constructor?.name && 
+        l.Constructor.name.toLowerCase() === t.name.toLowerCase()
       )
       
       const teamDriversList = driverStandings.value
@@ -209,7 +213,7 @@ const teams = computed(() => {
       return {
         pos: i + 1,
         name: t.name || '–',
-        teamId: t.constructorId || '',
+        teamId: t.constructorId || getFallbackTeamId(t.name) || '',
         points: t.points || 0,
         wins: t.wins || 0,
         diff: i === 0 ? 0 : (raw[0]?.points || 0) - (t.points || 0),
@@ -232,6 +236,22 @@ function selectTeam(team) {
 
 function closeDetail() {
   selectedTeam.value = null
+}
+
+function getFallbackTeamId(teamName) {
+  if (!teamName) return ''
+  const name = teamName.toLowerCase().trim()
+  if (name.includes('red bull')) return 'red_bull'
+  if (name.includes('aston martin')) return 'aston_martin'
+  if (name.includes('alpine')) return 'alpine'
+  if (name.includes('haas')) return 'haas'
+  if (name.includes('kick') || name.includes('sauber')) return 'sauber'
+  if (name.includes('rb') || name.includes('racing bulls') || name.includes('visa')) return 'rb'
+  if (name.includes('williams')) return 'williams'
+  if (name.includes('mercedes')) return 'mercedes'
+  if (name.includes('ferrari')) return 'ferrari'
+  if (name.includes('mclaren')) return 'mclaren'
+  return name.replace(/\s+/g, '_')
 }
 
 function countryEmoji(nationality) {
@@ -404,13 +424,18 @@ function countryEmoji(nationality) {
                   <span class="history-val dnf-count" :class="{ 'has-dnfs': dnfCount > 0 }">{{ dnfCount }}</span>
                 </div>
                 <div class="history-races">
-                  <span class="history-lbl">Letzte 5 Rennen:</span>
+                  <div class="history-races-header">
+                    <span class="history-lbl">Letzte 5 Rennen:</span>
+                    <div class="driver-headers" v-if="teamDrivers && teamDrivers.length">
+                      <span v-for="d in teamDrivers.slice(0, 2)" :key="d.id" class="driver-hdr-code">{{ d.code }}</span>
+                    </div>
+                  </div>
                   <div class="history-races-list">
                     <div v-for="r in lastRaces" :key="r.round" class="history-race-row">
                       <span class="race-name">{{ r.name }}</span>
                       <div class="race-results-badges">
                         <span v-for="(pos, idx) in r.positions" :key="idx" class="mini-pos-badge" :class="getPosClass(pos)">
-                          {{ pos === 'R' ? 'DNF' : 'P' + pos }}
+                          {{ pos === 'R' ? 'DNF' : (pos === '–' ? '–' : 'P' + pos) }}
                         </span>
                       </div>
                     </div>
@@ -987,6 +1012,24 @@ function countryEmoji(nationality) {
   display: flex;
   flex-direction: column;
   gap: 6px;
+}
+.history-races-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2px;
+}
+.driver-headers {
+  display: flex;
+  gap: 4px;
+}
+.driver-hdr-code {
+  font-size: 9px;
+  font-weight: 700;
+  color: var(--text-dim);
+  width: 30px;
+  text-align: center;
+  text-transform: uppercase;
 }
 .history-races-list {
   display: flex;

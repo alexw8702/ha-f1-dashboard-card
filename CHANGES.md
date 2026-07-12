@@ -5,6 +5,7 @@
   - **Konstrukteurswertung:** Zweite Spalte zeigt die Fahrer des Teams mit WM-Position und Punkten.
   - **Session-Karte:** Countdown + Zeitplan links, Wetter rechts.
   - **Letztes-Rennen-Karte:** Podium + Klassement links, Reifen-Strategie + Boxenstopps rechts.
+- **Konstrukteurswertung (Detail):** Die Team-Historie (letzte 5 Rennen) wurde mit Spalten-Headern versehen, die die Fahrer-Kürzel (TLA) zeigen. Leere oder DNF-Zustände werden nun sauber dargestellt.
 - `npm run test:ci` baut das Bundle, prüft die Syntax und führt alle JSDOM-Tests aus.
 - Der aktive Session-Status (`active_session`) ist mit einem LIVE-Badge-Test abgedeckt.
 - Die dokumentierte Entität für den Rennrückblick lautet `sensor.f1_dashboard_letztes_rennen_detail`.
