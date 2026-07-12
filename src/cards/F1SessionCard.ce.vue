@@ -254,7 +254,7 @@ const updatedLabel = computed(() =>
               <path v-for="(zone, i) in circuitData.aeroZones" :key="i" :d="zone" class="track-aero-zone" />
             </g>
           </svg>
-          <span class="active-aero-badge" v-if="circuitData.zones">{{ circuitData.zones }}× Active Aero</span>
+          <span class="active-aero-badge" v-if="circuitData.zones">{{ circuitData.zones }}× Straight Mode</span>
         </div>
       </header>
 
@@ -388,10 +388,10 @@ const updatedLabel = computed(() =>
 .track-outline { fill: none; stroke: #fff; stroke-width: 9; stroke-linejoin: round; opacity: 0.92; }
 .track-sf { fill: var(--red); }
 .track-arrow { fill: none; stroke: var(--teal); stroke-width: 5; }
-/* Active-Aero-Zonen: reale Positionen (recherchiert, keine Schätzung), als dickere
+/* Straight-Mode-Zonen: reale Positionen (recherchiert, keine Schätzung), als dickere
  * halbtransparente Linie direkt über der weißen Outline gezeichnet - der Streckenverlauf
  * bleibt darunter sichtbar, die Zone selbst ist auf einen Blick erkennbar. */
-.track-aero-zone { fill: none; stroke: var(--teal); stroke-width: 13; stroke-linecap: round; opacity: 0.75; }
+.track-aero-zone { fill: none; stroke: var(--teal); stroke-width: 8; stroke-linecap: round; stroke-linejoin: round; opacity: 0.75; }
 .active-aero-badge {
   position: absolute; left: 4px; bottom: 4px;
   background: rgba(0, 230, 195, 0.12);

@@ -191,7 +191,7 @@ cards:
 ## Changelog
 
 ### v0.6.2
-- 🏁 **Neue Streckenfakten:** Active Aero Zonen (vormals DRS) real auf der Streckenkarte eingezeichnet für alle 22 Strecken der Saison plus Badge mit der Gesamtzahl, Ort/Land mit Flagge unter dem Streckennamen, Vorjahrespodium, erstes Grand-Prix-Jahr im Fakten-Streifen, Sprint-Sessions farblich im Zeitplan hervorgehoben. Podium/erstes-GP-Jahr per direktem Jolpica-Abruf im Browser, kein Backend-Umbau nötig.
+- 🏁 **Neue Streckenfakten:** Straight Mode Zonen (vormals DRS) real auf der Streckenkarte eingezeichnet für alle 22 Strecken der Saison plus Badge mit der Gesamtzahl, Ort/Land mit Flagge unter dem Streckennamen, Vorjahrespodium, erstes Grand-Prix-Jahr im Fakten-Streifen, Sprint-Sessions farblich im Zeitplan hervorgehoben. Podium/erstes-GP-Jahr per direktem Jolpica-Abruf im Browser, kein Backend-Umbau nötig.
 - 📐 **Streckenkarte größer, config.title unterstützt.** max-width von 45%/75% auf 62%/92% (Desktop/Mobil) angehoben. Ein gesetzter Kartentitel (`title:` in der Lovelace-Konfiguration) erscheint jetzt im eigenen Header statt nirgends sichtbar zu sein.
 
 ### v0.6.1
