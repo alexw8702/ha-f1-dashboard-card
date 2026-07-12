@@ -179,13 +179,15 @@ const updatedLabel = computed(() =>
       <!-- ================= HEADER ================= -->
       <header class="hero">
         <div class="hero-text">
-          <span class="eyebrow">Nächstes Rennen</span>
+          <div class="eyebrow-line">
+            <span class="eyebrow">Nächstes Rennen</span>
+            <span class="badge" :class="statusLabel.cls">{{ statusLabel.text }}</span>
+          </div>
           <h1>{{ nextRace?.raceName ?? 'Kein Rennen' }}</h1>
           <div class="circuit-line" v-if="circuit">
             <span class="circuit-name">{{ circuit.circuitName }}</span>
           </div>
           <div class="date-range">{{ dateRange }}</div>
-          <span class="badge" :class="statusLabel.cls">{{ statusLabel.text }}</span>
 
           <!-- ================= FAKTEN-CHIPS ================= -->
           <!-- Teil der Titelspalte statt eigener Zeile darunter: dadurch bestimmen
@@ -321,6 +323,7 @@ const updatedLabel = computed(() =>
  * Pixel-Schwellwert der Karte selbst. */
 .hero { display: flex; flex-wrap: wrap; gap: 16px; align-items: stretch; }
 .hero-text { flex: 1 1 240px; min-width: 0; }
+.eyebrow-line { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
 .eyebrow {
   color: var(--red);
   font-size: 11px; font-weight: 700;
@@ -330,9 +333,9 @@ const updatedLabel = computed(() =>
 .circuit-name { color: var(--text-dim); font-size: 13px; letter-spacing: 0.04em; text-transform: uppercase; }
 .date-range { color: var(--text); font-size: 13px; margin-top: 6px; letter-spacing: 0.06em; }
 .badge {
-  display: inline-block; margin-top: 10px;
+  display: inline-block;
   font-size: 10px; font-weight: 700; letter-spacing: 0.14em;
-  padding: 4px 10px; border-radius: 999px;
+  padding: 3px 10px; border-radius: 999px;
   border: 1px solid var(--panel-border);
 }
 .badge.upcoming { color: #7fb2ff; border-color: rgba(127, 178, 255, 0.4); background: rgba(127, 178, 255, 0.08); }

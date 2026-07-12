@@ -197,6 +197,7 @@ cards:
 - 📐 **Streckenkarte füllt die volle Höhe, Header-Umbruch folgt der echten Bildgröße.** Die Streckenkarte war bisher auf eine feste Breite begrenzt und ließ bei kurzen/breiten Umrissen Leerraum darunter. Sie nutzt jetzt per `aspect-ratio` + `align-items: stretch` die volle Höhe der Titelspalte und wird dadurch größer. Der Umbruch zwischen Titel und Streckenkarte entscheidet sich außerdem anhand der tatsächlichen (gemessenen) Bildgröße statt eines festen Pixel-Werts.
 - 🎯 **Mobil zentriert.** Streckenkarte und Fakten-Streifen standen mobil trotz Umbruch linksbündig und die Karte war zusätzlich künstlich auf 240px begrenzt. Beide sind jetzt zentriert, die Streckenkarte nutzt bis zu 75% der verfügbaren Breite statt eines festen Pixelwerts.
 - 📏 **Streckenfakten jetzt Teil der Titelspalte.** Vorher eine eigene Zeile unterhalb des Headers, wirkte die Streckenkarte dadurch trotz Höhenanpassung klein gegenüber dem verbleibenden Leerraum. Titel + Badge + Fakten-Streifen bilden jetzt gemeinsam die Titelspalte, die Streckenkarte streckt sich auf deren volle (größere) Höhe.
+- 🏷️ **Status-Badge neben "Nächstes Rennen"** statt als eigene Zeile unterhalb von Datum/Zeitraum.
 
 ### v0.6.0
 - ✅ **Robustere Session Card:** Der LIVE-Badge bei gesetztem `active_session` wird nun mit einem eigenen JSDOM-Test geprüft.
