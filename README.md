@@ -193,6 +193,7 @@ cards:
 ### v0.6.1
 - 🐛 **Session-Karte: Wetter-Layout korrigiert.** Ab 680px Kartenbreite füllen die Wetter-Tageskarten ("Strecken-Bedingungen") jetzt die volle Panel-Breite als horizontale Zeile (Label, Icon, Temperatur, Regen, Wind), statt als winzige zentrierte Box in einem großen leeren Feld zu wirken. Die Zweispalten-Schwelle für Zeitplan/Wetter wurde von 600px auf 680px angehoben, um Textumbrüche im 600–680px-Bereich zu vermeiden.
 - 🏁 **Streckenkarte automatisch rotiert & maximal skaliert.** Hochformatige Streckenumrisse (Spa, Villeneuve, Yas Marina, ...) werden zur Laufzeit vermessen und bei Bedarf um 90° gedreht, das SVG-viewBox wird eng auf die Strecke zugeschnitten. Ergebnis: jede Strecke nutzt den verfügbaren Platz im Header maximal aus, ganz ohne pro Strecke gepflegte Werte.
+- 📊 **Streckenfakten kompakter.** Die fünf Fakten-Boxen (km, Runden, Kurven, Rundenrekord, Höhenmeter) sind jetzt ein einziger kompakter Streifen mit Trennlinien statt fünf einzelner Boxen, die sich bei breiten Karten auf die volle Restbreite streckten.
 
 ### v0.6.0
 - ✅ **Robustere Session Card:** Der LIVE-Badge bei gesetztem `active_session` wird nun mit einem eigenen JSDOM-Test geprüft.

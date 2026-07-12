@@ -339,20 +339,31 @@ const updatedLabel = computed(() =>
 .track-arrow { fill: none; stroke: var(--teal); stroke-width: 5; }
 
 /* ---------- Chips ---------- */
+/* Ein einziger Streifen statt fünf einzeln umrandeter Boxen: bei breiten Karten
+ * stretchte vorher jede Box per grid-1fr auf die volle Restbreite und wirkte dadurch
+ * winzig und mittig in viel Leerraum. Die Chips wachsen jetzt nicht mehr einzeln,
+ * sondern bleiben kompakt (flex: 0 1 auto) und der Streifen bleibt links ausgerichtet -
+ * überschüssiger Platz bleibt schlicht als Rand rechts, statt jede Box aufzublähen. */
 .chips {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(88px, 1fr));
-  gap: 8px; margin-top: 18px;
-}
-.chip {
+  display: inline-flex;
+  flex-wrap: wrap;
+  max-width: 100%;
+  margin-top: 18px;
   background: var(--panel);
   border: 1px solid var(--panel-border);
   border-radius: 10px;
-  padding: 10px 8px;
-  display: flex; flex-direction: column; align-items: center; gap: 2px;
+  overflow: hidden;
 }
-.chip-value { font-size: 15px; font-weight: 700; font-variant-numeric: tabular-nums; }
-.chip-label { font-size: 9.5px; color: var(--text-dim); letter-spacing: 0.1em; text-transform: uppercase; text-align: center; }
+.chip {
+  flex: 0 1 auto;
+  min-width: 76px;
+  padding: 9px 14px;
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px;
+  border-right: 1px solid var(--panel-border);
+}
+.chip:last-child { border-right: none; }
+.chip-value { font-size: 14px; font-weight: 700; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.chip-label { font-size: 9px; color: var(--text-dim); letter-spacing: 0.1em; text-transform: uppercase; text-align: center; white-space: nowrap; }
 
 /* ---------- Countdown ---------- */
 .countdown {
