@@ -191,6 +191,7 @@ cards:
 ## Changelog
 
 ### v0.6.2
+- 🔬 **Straight-Mode-Daten komplett neu recherchiert, Overtake Mode ergänzt.** 9 Strecken (Albert Park, Shanghai, Suzuka, Miami, Villeneuve, Monaco, Catalunya, Red Bull Ring, Silverstone) plus Spa haben bestätigte 2026er Daten aus freien Quellen (FIA, f1livepulse.com, Motor Sport Magazine, PlanetF1). Die übrigen 12 Strecken zeigen bewusst keine Zonen, statt auf alte DRS-Daten zurückzufallen — für sie liegen noch keine 2026-Streckenkarten vor. Neu: **Overtake Detection** (orange) und **Overtake Activation** (grün) als Punkte auf der Streckenkarte.
 - 🐛 **Spa: fehlende Straight-Mode-Zonen ergänzt (2→5)** anhand einer aktuellen 2026-Streckenkarte — die vorherige Recherche basierte auf veralteten 2024/2025-DRS-Daten.
 - 🏁 **Neue Streckenfakten:** Straight Mode Zonen (vormals DRS) real auf der Streckenkarte eingezeichnet für alle 22 Strecken der Saison plus Badge mit der Gesamtzahl, Ort/Land mit Flagge unter dem Streckennamen, Vorjahrespodium, erstes Grand-Prix-Jahr im Fakten-Streifen, Sprint-Sessions farblich im Zeitplan hervorgehoben. Podium/erstes-GP-Jahr per direktem Jolpica-Abruf im Browser, kein Backend-Umbau nötig.
 - 📐 **Streckenkarte größer, config.title unterstützt.** max-width von 45%/75% auf 62%/92% (Desktop/Mobil) angehoben. Ein gesetzter Kartentitel (`title:` in der Lovelace-Konfiguration) erscheint jetzt im eigenen Header statt nirgends sichtbar zu sein.

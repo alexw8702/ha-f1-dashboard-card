@@ -33,6 +33,14 @@ const activeSession = computed(() => sessionState.value?.attributes?.active_sess
 const circuit = computed(() => nextRace.value?.Circuit ?? null)
 const circuitData = computed(() => CIRCUITS[circuit.value?.circuitId] ?? null)
 
+/* Overtake-Detection/-Activation liegen in circuits.js als einfacher "M x y"-Punkt vor
+ * (kein voller Pfad nötig) - hier fürs Template in Kreis-Koordinaten zerlegt. */
+function markerPoint(point) {
+  if (!point) return null
+  const m = point.match(/(-?\d+\.?\d*)\s+(-?\d+\.?\d*)/)
+  return m ? { x: Number(m[1]), y: Number(m[2]) } : null
+}
+
 /* ---------- Streckenkarte: enger Zuschnitt + Rotation für maximale Größe ---------- */
 /* Manche Strecken (z.B. Spa) sind in ihrer Outline sehr hochformatig, während der
  * Anzeigebereich (Hero-Header) eher breit ist - das lässt die Karte winzig und
@@ -252,6 +260,10 @@ const updatedLabel = computed(() =>
               <path v-if="circuitData.sf" :d="circuitData.sf" class="track-sf" />
               <path v-if="circuitData.arrow" :d="circuitData.arrow" class="track-arrow" />
               <path v-for="(zone, i) in circuitData.aeroZones" :key="i" :d="zone" class="track-aero-zone" />
+              <circle v-if="markerPoint(circuitData.overtakeDetection)" class="track-detection-point"
+                :cx="markerPoint(circuitData.overtakeDetection).x" :cy="markerPoint(circuitData.overtakeDetection).y" r="6" />
+              <circle v-if="markerPoint(circuitData.overtakeActivation)" class="track-activation-point"
+                :cx="markerPoint(circuitData.overtakeActivation).x" :cy="markerPoint(circuitData.overtakeActivation).y" r="6" />
             </g>
           </svg>
           <span class="active-aero-badge" v-if="circuitData.zones">{{ circuitData.zones }}× Straight Mode</span>
@@ -388,10 +400,14 @@ const updatedLabel = computed(() =>
 .track-outline { fill: none; stroke: #fff; stroke-width: 9; stroke-linejoin: round; opacity: 0.92; }
 .track-sf { fill: var(--red); }
 .track-arrow { fill: none; stroke: var(--teal); stroke-width: 5; }
-/* Straight-Mode-Zonen: reale Positionen (recherchiert, keine Schätzung), als dickere
- * halbtransparente Linie direkt über der weißen Outline gezeichnet - der Streckenverlauf
- * bleibt darunter sichtbar, die Zone selbst ist auf einen Blick erkennbar. */
+/* Straight-Mode-Zonen: recherchierte 2026er Positionen, als dickere halbtransparente
+ * Linie direkt über der weißen Outline gezeichnet - der Streckenverlauf bleibt darunter
+ * sichtbar, die Zone selbst ist auf einen Blick erkennbar. Fehlt eine Strecke in den
+ * Quellen (noch kein Rennwochenende 2026 absolviert), bleibt aeroZones leer statt auf
+ * alte DRS-Daten zurückzufallen. */
 .track-aero-zone { fill: none; stroke: var(--teal); stroke-width: 8; stroke-linecap: round; stroke-linejoin: round; opacity: 0.75; }
+.track-detection-point { fill: #ffb400; stroke: #1a1a1a; stroke-width: 1.5; }
+.track-activation-point { fill: #00c853; stroke: #1a1a1a; stroke-width: 1.5; }
 .active-aero-badge {
   position: absolute; left: 4px; bottom: 4px;
   background: rgba(0, 230, 195, 0.12);
