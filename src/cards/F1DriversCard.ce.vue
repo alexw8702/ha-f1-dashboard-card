@@ -887,13 +887,15 @@ function getPosClass(pos) {
   .detail-card {
     display: grid;
     grid-template-columns: 210px 1fr;
+    grid-template-rows: auto auto 1fr auto auto;
     column-gap: 24px;
     row-gap: 8px;
+    align-items: start;
   }
   .detail-avatar-rectangular {
     display: block;
     grid-column: 1;
-    grid-row: 1 / span 2;
+    grid-row: 1 / span 3;
     width: 100%;
     aspect-ratio: 3/4;
     border-radius: 12px;
@@ -922,7 +924,7 @@ function getPosClass(pos) {
   }
   .detail-rows {
     grid-column: 1;
-    grid-row: 3 / span 3;
+    grid-row: 4 / span 2;
     margin-bottom: 0;
   }
   .detail-extract {
