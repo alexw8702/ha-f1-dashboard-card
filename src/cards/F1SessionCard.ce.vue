@@ -354,7 +354,7 @@ const updatedLabel = computed(() =>
 
 /* ---------- Zeitplan ---------- */
 .schedule { width: 100%; border-collapse: collapse; }
-.schedule td { padding: 9px 16px; font-size: 13px; border-top: 1px solid var(--panel-border); }
+.schedule td { padding: 9px 16px; font-size: 13px; border-top: 1px solid var(--panel-border); white-space: nowrap; }
 .schedule .s-label { font-weight: 600; }
 .schedule .s-date { color: var(--text-dim); }
 .schedule .s-time { text-align: right; font-variant-numeric: tabular-nums; }
@@ -377,7 +377,7 @@ const updatedLabel = computed(() =>
 .w-icon { font-size: 20px; }
 .w-temp { font-size: 14px; font-weight: 700; }
 .w-temp small { color: var(--text-dim); font-weight: 400; }
-.w-detail { font-size: 10.5px; color: var(--text-dim); }
+.w-detail { font-size: 10.5px; color: var(--text-dim); white-space: nowrap; }
 .w-empty { grid-column: 1 / -1; color: var(--text-dim); font-size: 12px; text-align: center; padding: 8px; }
 
 /* ---------- Footer ---------- */
@@ -397,7 +397,7 @@ const updatedLabel = computed(() =>
   flex-direction: column;
 }
 
-@container (min-width: 600px) {
+@container (min-width: 680px) {
   .sections-grid {
     display: grid;
     grid-template-columns: 1fr 1fr;
@@ -406,8 +406,18 @@ const updatedLabel = computed(() =>
   }
   .weather-row {
     grid-template-columns: 1fr !important;
-    gap: 6px !important;
+    gap: 8px !important;
   }
+  .weather-day {
+    flex-direction: row;
+    justify-content: space-between;
+    padding: 12px 18px;
+    gap: 14px;
+  }
+  .w-label { min-width: 28px; }
+  .w-icon { font-size: 26px; }
+  .w-temp { font-size: 17px; }
+  .w-detail { font-size: 12px; min-width: 64px; text-align: left; }
   .hero-track { max-width: 220px; }
 }
 

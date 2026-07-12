@@ -8,7 +8,7 @@ import F1DriversCard from './cards/F1DriversCard.ce.vue'
 import F1ConstructorsCard from './cards/F1ConstructorsCard.ce.vue'
 import F1RaceRecapCard from './cards/F1RaceRecapCard.ce.vue'
 
-const VERSION = '0.6.0'
+const VERSION = '0.6.1'
 
 function defineLovelaceCard(tag, vueComponent, cardSize = 5) {
   const Base = defineCustomElement(vueComponent)

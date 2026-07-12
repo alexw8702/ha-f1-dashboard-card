@@ -1,3 +1,8 @@
+# v0.6.1 — Session-Karte: Wetter-Layout bei breitem Viewport korrigiert
+
+- **Strecken-Bedingungen (Wetter):** Bei Kartenbreiten ab 680 px wirkte das Wetterfeld winzig und zentriert in einem großen leeren Panel, weil die Tageskarten auf einspaltige, vertikal zentrierte Mini-Boxen umschalteten statt die gewonnene Breite zu nutzen. Die Tageskarten sind jetzt horizontale Zeilen (Label, Icon, Temperatur, Regen, Wind nebeneinander), die die volle Panel-Breite ausfüllen.
+- Die Zweispalten-Schwelle für Zeitplan/Wetter wurde von 600 px auf 680 px angehoben, da im Bereich 600–680 px sowohl die Zeitplan-Tabelle (Datum brach um) als auch die Wetter-Details (Windangabe brach um) zu eng wurden. Datum/Zeit-Zellen und Wetter-Details brechen jetzt nicht mehr um (`white-space: nowrap`).
+
 # v0.6.0 — Responsive Design + Validierung
 
 - Alle vier Karten nutzen ab 600 px Breite ein zweispaltiges Layout:

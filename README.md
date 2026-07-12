@@ -190,6 +190,9 @@ cards:
 
 ## Changelog
 
+### v0.6.1
+- 🐛 **Session-Karte: Wetter-Layout korrigiert.** Ab 680px Kartenbreite füllen die Wetter-Tageskarten ("Strecken-Bedingungen") jetzt die volle Panel-Breite als horizontale Zeile (Label, Icon, Temperatur, Regen, Wind), statt als winzige zentrierte Box in einem großen leeren Feld zu wirken. Die Zweispalten-Schwelle für Zeitplan/Wetter wurde von 600px auf 680px angehoben, um Textumbrüche im 600–680px-Bereich zu vermeiden.
+
 ### v0.6.0
 - ✅ **Robustere Session Card:** Der LIVE-Badge bei gesetztem `active_session` wird nun mit einem eigenen JSDOM-Test geprüft.
 - 🧪 **Einheitliche Validierung:** `npm run test:ci` baut das auslieferbare Bundle, prüft dessen Syntax und führt alle Card-Tests aus; dieselbe Prüfkette läuft in GitHub Actions.
