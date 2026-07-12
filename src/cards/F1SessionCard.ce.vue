@@ -57,6 +57,7 @@ async function updateTrackFit() {
   trackFit.value = {
     viewBox: `${cx - w / 2} ${cy - h / 2} ${w} ${h}`,
     transform: rotate ? `rotate(90 ${cx} ${cy})` : null,
+    aspect: w / h,
   }
 }
 watch(circuitData, updateTrackFit, { immediate: true })
@@ -186,7 +187,7 @@ const updatedLabel = computed(() =>
           <div class="date-range">{{ dateRange }}</div>
           <span class="badge" :class="statusLabel.cls">{{ statusLabel.text }}</span>
         </div>
-        <div class="hero-track" v-if="circuitData">
+        <div class="hero-track" v-if="circuitData" :style="trackFit ? { aspectRatio: trackFit.aspect } : null">
           <svg :viewBox="trackFit?.viewBox ?? circuitData.vb" preserveAspectRatio="xMidYMid meet">
             <g ref="trackGroup" :transform="trackFit?.transform">
               <path :d="circuitData.outline" class="track-outline" />
@@ -211,13 +212,13 @@ const updatedLabel = computed(() =>
           <span class="chip-value">{{ circuitData.corners }}</span>
           <span class="chip-label">Kurven</span>
         </div>
-        <div class="chip" v-if="circuitData.record">
-          <span class="chip-value">{{ circuitData.record }}</span>
-          <span class="chip-label">Rundenrekord</span>
-        </div>
         <div class="chip">
           <span class="chip-value">{{ circuitData.elev }} m</span>
           <span class="chip-label">Höhenmeter</span>
+        </div>
+        <div class="chip chip-record" v-if="circuitData.record">
+          <span class="chip-value">{{ circuitData.record }}</span>
+          <span class="chip-label">Rundenrekord</span>
         </div>
       </div>
 
@@ -311,8 +312,12 @@ const updatedLabel = computed(() =>
 .error { color: var(--text-dim); padding: 24px; text-align: center; }
 
 /* ---------- Header ---------- */
-.hero { display: flex; gap: 16px; align-items: flex-start; }
-.hero-text { flex: 1 1 55%; min-width: 0; }
+/* flex-wrap statt fester Breakpoint: der Zeilenumbruch entsteht, sobald Titeltext
+ * (min. 240px) und Streckenkarte (min. 130px) nicht mehr nebeneinander passen -
+ * abhängig von den tatsächlichen Inhaltsgrößen, nicht von einem willkürlichen
+ * Pixel-Schwellwert der Karte selbst. */
+.hero { display: flex; flex-wrap: wrap; gap: 16px; align-items: stretch; }
+.hero-text { flex: 1 1 240px; min-width: 0; }
 .eyebrow {
   color: var(--red);
   font-size: 11px; font-weight: 700;
@@ -332,8 +337,13 @@ const updatedLabel = computed(() =>
 .badge.idle { color: var(--text-dim); }
 @keyframes pulse { 50% { opacity: 0.6; } }
 
-.hero-track { flex: 0 0 40%; max-width: 190px; }
-.hero-track svg { width: 100%; height: auto; display: block; }
+/* Größe kommt jetzt aus aspect-ratio (per JS aus der echten Track-Bounding-Box
+ * berechnet, siehe trackFit) statt aus einer festen Breite - dadurch nutzt die
+ * Karte per align-items:stretch die volle Höhe der Titelspalte aus (vorher blieb
+ * bei breiten, kurzen Tracks Leerraum unter dem Bild), und die intrinsische Größe
+ * fließt korrekt in die flex-wrap-Umbruchberechnung von .hero ein. */
+.hero-track { flex: 0 1 auto; min-width: 120px; max-width: 45%; }
+.hero-track svg { width: 100%; height: 100%; display: block; }
 .track-outline { fill: none; stroke: #fff; stroke-width: 9; stroke-linejoin: round; opacity: 0.92; }
 .track-sf { fill: var(--red); }
 .track-arrow { fill: none; stroke: var(--teal); stroke-width: 5; }
@@ -465,11 +475,20 @@ const updatedLabel = computed(() =>
   .w-icon { font-size: 26px; }
   .w-temp { font-size: 17px; }
   .w-detail { font-size: 12px; min-width: 64px; text-align: left; }
-  .hero-track { max-width: 220px; }
 }
 
-@container (max-width: 420px) {
-  .hero { flex-direction: column-reverse; }
-  .hero-track { max-width: 150px; align-self: center; }
+@container (max-width: 460px) {
+  /* Sobald .hero umbricht (organisch via flex-wrap, siehe oben), soll die
+   * Streckenkarte weiterhin oberhalb des Titels erscheinen wie zuvor - reine
+   * Reihenfolge-/Größenkosmetik, nicht die Umbruch-Entscheidung selbst. */
+  .hero-track { order: -1; align-self: center; width: 100%; max-width: 240px; height: auto; }
+  .hero-track svg { width: 100%; height: auto; }
+  /* Die vier übrigen Werte teilen sich gleichmäßig die Zeilenbreite, statt anhand
+   * ihrer Mindestbreite einzeln umzubrechen - so bleiben sie zu viert in einer Zeile,
+   * bevor der Rundenrekord als eigene zentrierte Zeile darunter folgt. */
+  .chip:not(.chip-record) { flex: 1 1 0; min-width: 0; padding: 8px 4px; }
+  .chip-value { font-size: 13px; }
+  .chip-label { font-size: 8px; }
+  .chip-record { flex: 1 1 100%; border-right: none; border-top: 1px solid var(--panel-border); }
 }
 </style>
