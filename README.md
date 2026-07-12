@@ -191,7 +191,8 @@ cards:
 ## Changelog
 
 ### v0.6.2
-- 🏁 **Neue Streckenfakten:** Active Aero Zonen (vormals DRS) als Badge auf der Streckenkarte, Ort/Land mit Flagge unter dem Streckennamen, Vorjahrespodium, erstes Grand-Prix-Jahr im Fakten-Streifen, Sprint-Sessions farblich im Zeitplan hervorgehoben. Podium/erstes-GP-Jahr per direktem Jolpica-Abruf im Browser, kein Backend-Umbau nötig.
+- 🏁 **Neue Streckenfakten:** Active Aero Zonen (vormals DRS) real auf der Streckenkarte eingezeichnet (Spa, Miami, Suzuka, Villeneuve — weitere folgen) plus Badge mit der Gesamtzahl, Ort/Land mit Flagge unter dem Streckennamen, Vorjahrespodium, erstes Grand-Prix-Jahr im Fakten-Streifen, Sprint-Sessions farblich im Zeitplan hervorgehoben. Podium/erstes-GP-Jahr per direktem Jolpica-Abruf im Browser, kein Backend-Umbau nötig.
+- 📐 **Streckenkarte größer, config.title unterstützt.** max-width von 45%/75% auf 62%/92% (Desktop/Mobil) angehoben. Ein gesetzter Kartentitel (`title:` in der Lovelace-Konfiguration) erscheint jetzt im eigenen Header statt nirgends sichtbar zu sein.
 
 ### v0.6.1
 - 🐛 **Session-Karte: Wetter-Layout korrigiert.** Ab 680px Kartenbreite füllen die Wetter-Tageskarten ("Strecken-Bedingungen") jetzt die volle Panel-Breite als horizontale Zeile (Label, Icon, Temperatur, Regen, Wind), statt als winzige zentrierte Box in einem großen leeren Feld zu wirken. Die Zweispalten-Schwelle für Zeitplan/Wetter wurde von 600px auf 680px angehoben, um Textumbrüche im 600–680px-Bereich zu vermeiden.

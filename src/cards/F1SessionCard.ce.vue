@@ -19,6 +19,11 @@ const props = defineProps({
 const sessionEntity = computed(() =>
   props.config?.entity || 'sensor.f1_dashboard_session_status')
 
+/* Lovelace-Standardkonvention: ein optionaler config.title landet sonst in einer
+ * generischen HA-Titelzeile oberhalb der Karte statt im eigenen Carbon-Header -
+ * wird hier stattdessen direkt in die eyebrow-line übernommen. */
+const eyebrowText = computed(() => props.config?.title || 'Nächstes Rennen')
+
 const sessionState = computed(() =>
   props.hass?.states?.[sessionEntity.value] ?? null)
 
@@ -193,7 +198,7 @@ const updatedLabel = computed(() =>
       <header class="hero">
         <div class="hero-text">
           <div class="eyebrow-line">
-            <span class="eyebrow">Nächstes Rennen</span>
+            <span class="eyebrow">{{ eyebrowText }}</span>
             <span class="badge" :class="statusLabel.cls">{{ statusLabel.text }}</span>
           </div>
           <h1>{{ nextRace?.raceName ?? 'Kein Rennen' }}</h1>
@@ -246,6 +251,7 @@ const updatedLabel = computed(() =>
               <path :d="circuitData.outline" class="track-outline" />
               <path v-if="circuitData.sf" :d="circuitData.sf" class="track-sf" />
               <path v-if="circuitData.arrow" :d="circuitData.arrow" class="track-arrow" />
+              <path v-for="(zone, i) in circuitData.aeroZones" :key="i" :d="zone" class="track-aero-zone" />
             </g>
           </svg>
           <span class="active-aero-badge" v-if="circuitData.zones">{{ circuitData.zones }}× Active Aero</span>
@@ -377,11 +383,15 @@ const updatedLabel = computed(() =>
  * Karte per align-items:stretch die volle Höhe der Titelspalte aus (vorher blieb
  * bei breiten, kurzen Tracks Leerraum unter dem Bild), und die intrinsische Größe
  * fließt korrekt in die flex-wrap-Umbruchberechnung von .hero ein. */
-.hero-track { flex: 0 1 auto; min-width: 120px; max-width: 45%; position: relative; }
+.hero-track { flex: 0 1 auto; min-width: 120px; max-width: 62%; position: relative; }
 .hero-track svg { width: 100%; height: 100%; display: block; }
 .track-outline { fill: none; stroke: #fff; stroke-width: 9; stroke-linejoin: round; opacity: 0.92; }
 .track-sf { fill: var(--red); }
 .track-arrow { fill: none; stroke: var(--teal); stroke-width: 5; }
+/* Active-Aero-Zonen: reale Positionen (recherchiert, keine Schätzung), als dickere
+ * halbtransparente Linie direkt über der weißen Outline gezeichnet - der Streckenverlauf
+ * bleibt darunter sichtbar, die Zone selbst ist auf einen Blick erkennbar. */
+.track-aero-zone { fill: none; stroke: var(--teal); stroke-width: 13; stroke-linecap: round; opacity: 0.75; }
 .active-aero-badge {
   position: absolute; left: 4px; bottom: 4px;
   background: rgba(0, 230, 195, 0.12);
@@ -530,7 +540,7 @@ const updatedLabel = computed(() =>
    * max-width ist jetzt relativ (75%) statt eines festen Pixelwerts, damit die
    * Karte den frei gewordenen Platz tatsächlich ausfüllt statt künstlich klein
    * zu bleiben; margin:auto zentriert sie in ihrer eigenen (umgebrochenen) Zeile. */
-  .hero-track { order: -1; width: auto; max-width: 75%; height: auto; margin: 0 auto; }
+  .hero-track { order: -1; width: auto; max-width: 92%; height: auto; margin: 0 auto; }
   .hero-track svg { width: 100%; height: auto; }
   .active-aero-badge { font-size: 7.5px; padding: 1px 5px; }
   /* Werte behalten ihre natürliche (Inhalts-)Breite und brechen per flex-wrap
