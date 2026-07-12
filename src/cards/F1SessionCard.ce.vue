@@ -186,6 +186,33 @@ const updatedLabel = computed(() =>
           </div>
           <div class="date-range">{{ dateRange }}</div>
           <span class="badge" :class="statusLabel.cls">{{ statusLabel.text }}</span>
+
+          <!-- ================= FAKTEN-CHIPS ================= -->
+          <!-- Teil der Titelspalte statt eigener Zeile darunter: dadurch bestimmen
+               Titel + Fakten gemeinsam die Höhe der Kopfzeile, an der sich die
+               Streckenkarte per align-items:stretch orientiert. -->
+          <div class="chips" v-if="circuitData">
+            <div class="chip">
+              <span class="chip-value">{{ circuitData.km.toLocaleString('de-DE', { minimumFractionDigits: 3 }) }}</span>
+              <span class="chip-label">km Strecke</span>
+            </div>
+            <div class="chip">
+              <span class="chip-value">{{ circuitData.laps }}</span>
+              <span class="chip-label">Runden</span>
+            </div>
+            <div class="chip">
+              <span class="chip-value">{{ circuitData.corners }}</span>
+              <span class="chip-label">Kurven</span>
+            </div>
+            <div class="chip">
+              <span class="chip-value">{{ circuitData.elev }} m</span>
+              <span class="chip-label">Höhenmeter</span>
+            </div>
+            <div class="chip chip-record" v-if="circuitData.record">
+              <span class="chip-value">{{ circuitData.record }}</span>
+              <span class="chip-label">Rundenrekord</span>
+            </div>
+          </div>
         </div>
         <div class="hero-track" v-if="circuitData" :style="trackFit ? { aspectRatio: trackFit.aspect } : null">
           <svg :viewBox="trackFit?.viewBox ?? circuitData.vb" preserveAspectRatio="xMidYMid meet">
@@ -197,30 +224,6 @@ const updatedLabel = computed(() =>
           </svg>
         </div>
       </header>
-
-      <!-- ================= FAKTEN-CHIPS ================= -->
-      <div class="chips" v-if="circuitData">
-        <div class="chip">
-          <span class="chip-value">{{ circuitData.km.toLocaleString('de-DE', { minimumFractionDigits: 3 }) }}</span>
-          <span class="chip-label">km Strecke</span>
-        </div>
-        <div class="chip">
-          <span class="chip-value">{{ circuitData.laps }}</span>
-          <span class="chip-label">Runden</span>
-        </div>
-        <div class="chip">
-          <span class="chip-value">{{ circuitData.corners }}</span>
-          <span class="chip-label">Kurven</span>
-        </div>
-        <div class="chip">
-          <span class="chip-value">{{ circuitData.elev }} m</span>
-          <span class="chip-label">Höhenmeter</span>
-        </div>
-        <div class="chip chip-record" v-if="circuitData.record">
-          <span class="chip-value">{{ circuitData.record }}</span>
-          <span class="chip-label">Rundenrekord</span>
-        </div>
-      </div>
 
       <!-- ================= RESPONSIVE SECTIONS GRID ================= -->
       <div class="sections-grid">
