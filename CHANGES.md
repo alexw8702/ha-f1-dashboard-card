@@ -1,3 +1,12 @@
+# v0.6.2 — Session-Karte: zusätzliche Streckenfakten
+
+- **Active Aero Zonen** (bisher "DRS-Zonen" genannt, Umbenennung ab dieser Saison): Anzahl als Badge direkt auf der Streckenkarte, unten links auf dem Track-Umriss.
+- **Ort/Land + Flagge** unterhalb des Streckennamens (z.B. "🇧🇪 Spa, Belgium") — Daten kamen bereits mit dem Kalender-Sensor, wurden bisher aber nicht angezeigt. Flaggen-Zuordnung über eine feste Länder→Emoji-Tabelle (die 19 Länder der aktuellen Saison).
+- **Vorjahrespodium** (Top 3 des letztjährigen Rennens an dieser Strecke) als kompakte Zeile im Titelbereich, z.B. "PODIUM 2025 · 1. Piastri · 2. Norris · 3. Leclerc".
+- **Erster Grand Prix** (Jahr der ersten Austragung an dieser Strecke) als weiterer Eintrag im Fakten-Streifen.
+- **Sprint-Wochenende**: Sprint-Quali/Sprint-Zeilen im Wochenende-Zeitplan sind jetzt in Teal hervorgehoben statt unmarkiert zwischen den regulären Sessions zu stehen.
+- Podium und erstes-GP-Jahr kommen per direktem Browser-Fetch von Jolpica (`useCircuitHistory.js`, analog zum bestehenden `useWeather.js`-Muster) — Jolpica setzt `Access-Control-Allow-Origin: *`, ein Backend-/Sensor-Umbau war dafür nicht nötig.
+
 # v0.6.1 — Session-Karte: Wetter-Layout bei breitem Viewport korrigiert
 
 - **Strecken-Bedingungen (Wetter):** Bei Kartenbreiten ab 680 px wirkte das Wetterfeld winzig und zentriert in einem großen leeren Panel, weil die Tageskarten auf einspaltige, vertikal zentrierte Mini-Boxen umschalteten statt die gewonnene Breite zu nutzen. Die Tageskarten sind jetzt horizontale Zeilen (Label, Icon, Temperatur, Regen, Wind nebeneinander), die die volle Panel-Breite ausfüllen.

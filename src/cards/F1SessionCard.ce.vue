@@ -8,6 +8,7 @@
 import { computed, ref, onMounted, onUnmounted, watch, nextTick } from 'vue'
 import { CIRCUITS } from '../data/circuits.js'
 import { useWeather, weatherIcon } from '../composables/useWeather.js'
+import { useCircuitHistory, countryFlag } from '../composables/useCircuitHistory.js'
 
 const props = defineProps({
   hass: { type: Object, default: null },
@@ -62,7 +63,19 @@ async function updateTrackFit() {
 }
 watch(circuitData, updateTrackFit, { immediate: true })
 
+/* ---------- Ort/Land + Flagge (aus dem ohnehin vorhandenen Kalender-Sensor) ---------- */
+const circuitLocation = computed(() => {
+  const loc = circuit.value?.Location
+  if (!loc?.locality || !loc?.country) return null
+  return { locality: loc.locality, country: loc.country, flag: countryFlag(loc.country) }
+})
+
+/* ---------- Streckenhistorie: erstes GP-Jahr + Vorjahrespodium (direkt via Jolpica) ---------- */
+const circuitId = computed(() => circuit.value?.circuitId ?? null)
+const { firstYear, lastYearPodium, lastYearSeason } = useCircuitHistory(circuitId)
+
 /* ---------- Zeitplan ---------- */
+const SPRINT_KEYS = new Set(['SprintQualifying', 'Sprint'])
 const SESSION_LABELS = [
   ['FirstPractice', 'FP1'],
   ['SecondPractice', 'FP2'],
@@ -77,7 +90,7 @@ const schedule = computed(() => {
   if (!race) return []
   const rows = []
   for (const [key, label] of SESSION_LABELS) {
-    if (race[key]?.date) rows.push({ label, ...toLocal(race[key]) })
+    if (race[key]?.date) rows.push({ label, ...toLocal(race[key]), sprint: SPRINT_KEYS.has(key) })
   }
   rows.push({ label: 'Rennen', ...toLocal(race), highlight: true })
   return rows
@@ -187,7 +200,14 @@ const updatedLabel = computed(() =>
           <div class="circuit-line" v-if="circuit">
             <span class="circuit-name">{{ circuit.circuitName }}</span>
           </div>
+          <div class="circuit-location" v-if="circuitLocation">
+            {{ circuitLocation.flag }} {{ circuitLocation.locality }}, {{ circuitLocation.country }}
+          </div>
           <div class="date-range">{{ dateRange }}</div>
+          <div class="podium-line" v-if="lastYearPodium.length">
+            <span class="podium-label">Podium {{ lastYearSeason }}</span>
+            <span class="podium-entry" v-for="p in lastYearPodium" :key="p.pos">{{ p.pos }}. {{ p.familyName }}</span>
+          </div>
 
           <!-- ================= FAKTEN-CHIPS ================= -->
           <!-- Teil der Titelspalte statt eigener Zeile darunter: dadurch bestimmen
@@ -210,6 +230,10 @@ const updatedLabel = computed(() =>
               <span class="chip-value">{{ circuitData.elev }} m</span>
               <span class="chip-label">Höhenmeter</span>
             </div>
+            <div class="chip" v-if="firstYear">
+              <span class="chip-value">{{ firstYear }}</span>
+              <span class="chip-label">Erster GP</span>
+            </div>
             <div class="chip chip-record" v-if="circuitData.record">
               <span class="chip-value">{{ circuitData.record }}</span>
               <span class="chip-label">Rundenrekord</span>
@@ -224,6 +248,7 @@ const updatedLabel = computed(() =>
               <path v-if="circuitData.arrow" :d="circuitData.arrow" class="track-arrow" />
             </g>
           </svg>
+          <span class="active-aero-badge" v-if="circuitData.zones">{{ circuitData.zones }}× Active Aero</span>
         </div>
       </header>
 
@@ -244,7 +269,7 @@ const updatedLabel = computed(() =>
             </button>
             <table v-if="openSections.schedule" class="schedule">
               <tbody>
-                <tr v-for="row in schedule" :key="row.label" :class="{ highlight: row.highlight, past: row.dt.getTime() < now }">
+                <tr v-for="row in schedule" :key="row.label" :class="{ highlight: row.highlight, sprint: row.sprint, past: row.dt.getTime() < now }">
                   <td class="s-label">{{ row.label }}</td>
                   <td class="s-date">{{ row.day }}, {{ row.date }}</td>
                   <td class="s-time">{{ row.time }}</td>
@@ -331,7 +356,11 @@ const updatedLabel = computed(() =>
 }
 .hero h1 { font-size: 24px; font-weight: 700; margin: 6px 0 4px; line-height: 1.15; }
 .circuit-name { color: var(--text-dim); font-size: 13px; letter-spacing: 0.04em; text-transform: uppercase; }
+.circuit-location { color: var(--text-dim); font-size: 11.5px; margin-top: 2px; }
 .date-range { color: var(--text); font-size: 13px; margin-top: 6px; letter-spacing: 0.06em; }
+.podium-line { display: flex; flex-wrap: wrap; gap: 4px 10px; margin-top: 6px; font-size: 11.5px; }
+.podium-label { color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.08em; font-size: 10px; }
+.podium-entry { color: var(--text); font-variant-numeric: tabular-nums; }
 .badge {
   display: inline-block;
   font-size: 10px; font-weight: 700; letter-spacing: 0.14em;
@@ -348,11 +377,20 @@ const updatedLabel = computed(() =>
  * Karte per align-items:stretch die volle Höhe der Titelspalte aus (vorher blieb
  * bei breiten, kurzen Tracks Leerraum unter dem Bild), und die intrinsische Größe
  * fließt korrekt in die flex-wrap-Umbruchberechnung von .hero ein. */
-.hero-track { flex: 0 1 auto; min-width: 120px; max-width: 45%; }
+.hero-track { flex: 0 1 auto; min-width: 120px; max-width: 45%; position: relative; }
 .hero-track svg { width: 100%; height: 100%; display: block; }
 .track-outline { fill: none; stroke: #fff; stroke-width: 9; stroke-linejoin: round; opacity: 0.92; }
 .track-sf { fill: var(--red); }
 .track-arrow { fill: none; stroke: var(--teal); stroke-width: 5; }
+.active-aero-badge {
+  position: absolute; left: 4px; bottom: 4px;
+  background: rgba(0, 230, 195, 0.12);
+  border: 1px solid rgba(0, 230, 195, 0.4);
+  color: var(--teal);
+  font-size: 9px; font-weight: 700; letter-spacing: 0.06em;
+  padding: 2px 7px; border-radius: 999px;
+  white-space: nowrap;
+}
 
 /* ---------- Chips ---------- */
 /* Ein einziger Streifen statt fünf einzeln umrandeter Boxen: bei breiten Karten
@@ -423,6 +461,8 @@ const updatedLabel = computed(() =>
 .schedule .s-time { text-align: right; font-variant-numeric: tabular-nums; }
 .schedule tr.past td { opacity: 0.45; }
 .schedule tr.highlight td { color: var(--red); font-weight: 700; background: rgba(225, 6, 0, 0.06); }
+.schedule tr.sprint td { color: var(--teal); background: rgba(0, 230, 195, 0.05); }
+.schedule tr.sprint .s-date, .schedule tr.sprint .s-time { color: var(--teal); }
 
 /* ---------- Wetter ---------- */
 .weather-row {
@@ -492,10 +532,11 @@ const updatedLabel = computed(() =>
    * zu bleiben; margin:auto zentriert sie in ihrer eigenen (umgebrochenen) Zeile. */
   .hero-track { order: -1; width: auto; max-width: 75%; height: auto; margin: 0 auto; }
   .hero-track svg { width: 100%; height: auto; }
-  /* Die vier übrigen Werte teilen sich gleichmäßig die Zeilenbreite, statt anhand
-   * ihrer Mindestbreite einzeln umzubrechen - so bleiben sie zu viert in einer Zeile,
-   * bevor der Rundenrekord als eigene zentrierte Zeile darunter folgt. */
-  .chip:not(.chip-record) { flex: 1 1 0; min-width: 0; padding: 8px 4px; }
+  .active-aero-badge { font-size: 7.5px; padding: 1px 5px; }
+  /* Werte behalten ihre natürliche (Inhalts-)Breite und brechen per flex-wrap
+   * eigenständig um (3+2 o.ä.), statt sich eine feste Anzahl pro Zeile zu teilen -
+   * eine erzwungene Gleichverteilung ließ Labels bei 5 Werten ineinanderlaufen. */
+  .chip:not(.chip-record) { flex: 0 1 auto; min-width: 56px; padding: 8px 6px; }
   .chip-value { font-size: 13px; }
   .chip-label { font-size: 8px; }
   .chip-record { flex: 1 1 100%; border-right: none; border-top: 1px solid var(--panel-border); }

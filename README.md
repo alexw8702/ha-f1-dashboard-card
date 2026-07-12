@@ -190,6 +190,9 @@ cards:
 
 ## Changelog
 
+### v0.6.2
+- 🏁 **Neue Streckenfakten:** Active Aero Zonen (vormals DRS) als Badge auf der Streckenkarte, Ort/Land mit Flagge unter dem Streckennamen, Vorjahrespodium, erstes Grand-Prix-Jahr im Fakten-Streifen, Sprint-Sessions farblich im Zeitplan hervorgehoben. Podium/erstes-GP-Jahr per direktem Jolpica-Abruf im Browser, kein Backend-Umbau nötig.
+
 ### v0.6.1
 - 🐛 **Session-Karte: Wetter-Layout korrigiert.** Ab 680px Kartenbreite füllen die Wetter-Tageskarten ("Strecken-Bedingungen") jetzt die volle Panel-Breite als horizontale Zeile (Label, Icon, Temperatur, Regen, Wind), statt als winzige zentrierte Box in einem großen leeren Feld zu wirken. Die Zweispalten-Schwelle für Zeitplan/Wetter wurde von 600px auf 680px angehoben, um Textumbrüche im 600–680px-Bereich zu vermeiden.
 - 🏁 **Streckenkarte automatisch rotiert & maximal skaliert.** Hochformatige Streckenumrisse (Spa, Villeneuve, Yas Marina, ...) werden zur Laufzeit vermessen und bei Bedarf um 90° gedreht, das SVG-viewBox wird eng auf die Strecke zugeschnitten. Ergebnis: jede Strecke nutzt den verfügbaren Platz im Header maximal aus, ganz ohne pro Strecke gepflegte Werte.
