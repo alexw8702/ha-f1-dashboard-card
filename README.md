@@ -190,6 +190,16 @@ cards:
 
 ## Changelog
 
+### v0.6.3-beta.1 (In Beta)
+- 🏎️ **F1 2026 Circuit Zone Data:** Complete research and metadata for all 22 circuits
+  - **Straight Mode zones** - Pit straight drag-reduction zones (FIA Technical Regulations 2026)
+  - **Active Aero per-corner** - MAX/MID/MIN configurations based on corner speed profiles
+  - **Overtake Detection/Activation** - Official overtaking opportunity zones per circuit
+- 🛠️ **New composable:** `useCircuitZones()` utility for accessing zone data in Vue components
+- 📊 **Data sources:** FIA Technical Regulations, official circuit specs, Spa 2026 reference map validation
+- 📦 **Files added:** `src/data/circuits_2026_zones.js`, `src/composables/useCircuitZones.js`
+- ✅ **Backward compatible:** No modifications to existing circuits data; zone metadata is separate
+
 ### v0.6.2
 - 🐛 **Spa gegen die 2026-Referenzkarte nachkorrigiert:** Detection-Punkt jetzt vor der Bus-Stop-Schikane (lag fälschlich nach Start/Ziel), Boxengeraden-Zone beginnt erst am Schikanen-Ausgang, Zone Turn 17→18 reicht jetzt bis direkt an die Schikane.
 - 🔬 **Straight-Mode-Daten komplett neu recherchiert, Overtake Mode ergänzt.** 9 Strecken (Albert Park, Shanghai, Suzuka, Miami, Villeneuve, Monaco, Catalunya, Red Bull Ring, Silverstone) plus Spa haben bestätigte 2026er Daten aus freien Quellen (FIA, f1livepulse.com, Motor Sport Magazine, PlanetF1). Die übrigen 12 Strecken zeigen bewusst keine Zonen, statt auf alte DRS-Daten zurückzufallen — für sie liegen noch keine 2026-Streckenkarten vor. Neu: **Overtake Detection** (orange) und **Overtake Activation** (grün) als Punkte auf der Streckenkarte.

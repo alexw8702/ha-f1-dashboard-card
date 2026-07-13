@@ -1,3 +1,21 @@
+# v0.6.3-beta.1 — F1 2026 Circuit Zone Data
+
+**Beta release: F1 2026 technical regulations zone metadata for all 22 circuits**
+
+- **F1 2026 Straight Mode zones:** Complete research and data for pit straight drag-reduction zones across all 22 circuits
+- **Active Aero per-corner configuration:** MAX/MID/MIN aerodynamic types for every turn on every circuit based on corner speed profiles
+- **Overtake Detection/Activation zones:** Mapped strategic overtaking opportunity locations per official FIA 2026 regulations
+- **New composable:** `useCircuitZones()` utility for accessing zone data in Vue components
+- **Production-ready data:** Comprehensive zone metadata in `src/data/circuits_2026_zones.js` based on FIA Technical Regulations Articles 10 & 11
+- **Spa circuit reference validation:** All zones verified against official 2026 track map provided by user
+
+**Implementation files:**
+- `src/data/circuits_2026_zones.js` - Zone metadata for all 22 circuits
+- `src/composables/useCircuitZones.js` - Access utilities and summary functions
+- `IMPLEMENTATION_F1_2026_ZONES.md` - Detailed integration guide
+
+**No breaking changes:** Existing circuits.js SVG data preserved; zone data is separate and optional.
+
 # v0.6.2 — Session-Karte: zusätzliche Streckenfakten
 
 - **Spa: Zonen- und Overtake-Positionen gegen die 2026-Referenzkarte nachkorrigiert.** Drei Abweichungen behoben: der Overtake-Detection-Punkt lag fälschlich nach Start/Ziel auf der Boxengeraden statt vor der Bus-Stop-Schikane; die Boxengeraden-Zone begann zu früh und deckte die Schikane mit ab (beginnt jetzt am Schikanen-Ausgang); die Zone Turn 17→18 endete ~700 m zu früh statt direkt vor der Schikane. Activation-Punkt sitzt jetzt wie in der Referenz zwischen Schikanen-Ausgang und Ziellinie.
