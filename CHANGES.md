@@ -1,3 +1,24 @@
+# v0.6.3-beta.3 — Build & Release Update
+
+**Beta maintenance release: rebuilt dist bundle with v0.6.3-beta.3 version stamp**
+
+- **Version bump:** `0.6.3-beta.3` across `package.json` and `src/main.js`
+- **Clean CHANGES.md:** Removed duplicate v0.6.3-beta.2 entry from working tree (was accidentally prepended twice)
+- **Rebuilt distribution:** `dist/f1-dashboard-card.js` regenerated with updated version constant
+- **No functional changes:** Identical feature set to v0.6.3-beta.2
+
+# v0.6.3-beta.2 — Active Aero_2026 Data Integration + Visualization Updates
+
+**Beta update: Merged structured 2026 Active Aero data into circuits.js for visualization**
+
+- **Active Aero per-turn data now in circuits.js:** 8 circuits (Albert Park, Shanghai, Suzuka, Villeneuve, Monaco, Silverstone, Spa, Monza) now include `activeAero_2026` array with MAX/MID/MIN types and corner speeds — enables future SVG-path-based zone rendering
+- **Zone visualization updates in F1SessionCard:**
+  - Straight Mode badge now shows "Straight Mode" instead of "DRS-Zonen"
+  - New zones badge displaying: overtake opportunities count + MAX/MIN downforce corner counts
+  - Detection (orange) / Activation (green) points rendered on track map
+  - Zone labels for Straight Mode zones on track
+- **Data structure alignment:** `activeAero_2026` in circuits.js matches `ZONES_2026` structure for consistency
+
 # v0.6.3-beta.1 — F1 2026 Circuit Zone Data
 
 **Beta release: F1 2026 technical regulations zone metadata for all 22 circuits**
@@ -17,149 +38,3 @@
 **No breaking changes:** Existing circuits.js SVG data preserved; zone data is separate and optional.
 
 # v0.6.2 — Session-Karte: zusätzliche Streckenfakten
-
-- **Spa: Zonen- und Overtake-Positionen gegen die 2026-Referenzkarte nachkorrigiert.** Drei Abweichungen behoben: der Overtake-Detection-Punkt lag fälschlich nach Start/Ziel auf der Boxengeraden statt vor der Bus-Stop-Schikane; die Boxengeraden-Zone begann zu früh und deckte die Schikane mit ab (beginnt jetzt am Schikanen-Ausgang); die Zone Turn 17→18 endete ~700 m zu früh statt direkt vor der Schikane. Activation-Punkt sitzt jetzt wie in der Referenz zwischen Schikanen-Ausgang und Ziellinie.
-- **Alle Straight-Mode-Daten komplett neu recherchiert und um Overtake Mode ergänzt.** Die bisherige Recherche (auch die Spa-Korrektur) beruhte teils auf Rückschlüssen statt auf strecken­spezifischen 2026er Quellen. Jetzt für jede der 22 Strecken einzeln anhand freier Quellen (FIA-Angaben, f1livepulse.com-Streckenkarten, Motor Sport Magazine, PlanetF1, RaceFans) recherchiert: **9 Strecken haben bestätigte 2026-Daten** (Albert Park, Shanghai, Suzuka, Miami, Villeneuve, Monaco, Catalunya, Red Bull Ring, Silverstone) — Monaco explizit mit 0 Zonen, da die FIA dort keine Straight-Mode-Zone zugelassen hat (Mindestdauer-Regel nirgends erfüllt). Spa behält die bereits verifizierten 5 Zonen. **Die übrigen 12 Strecken zeigen bewusst keine Zonen** (Ungarn, Zandvoort, Monza, Madrid, Baku, Singapur, Austin, Mexiko-Stadt, Brasilien, Las Vegas, Katar, Abu Dhabi) — für sie liegen schlicht noch keine 2026er Streckenkarten vor (Rennen finden erst später in der Saison statt), und es wurde bewusst **nicht auf alte DRS-Daten zurückgefallen**. Zonen-Positionen ohne eindeutige Turn-für-Turn-Bestätigung wurden geometrisch aus der echten Streckenkontur abgeleitet (längste Geraden, Fahrtrichtung aus dem Pfeil-Marker) statt frei geschätzt.
-- **Overtake Detection & Activation Punkte neu auf der Streckenkarte.** Die zwei neuen Messpunkte des 2026er Regelwerks (1-Sekunden-Fenster-Messung / Freischaltung der Zusatzleistung) werden jetzt als oranger bzw. grüner Punkt direkt auf der Streckenkarte angezeigt, wo die Quellenlage das zuließ.
-- **Spa: fehlende Straight-Mode-Zonen ergänzt (2 → 5).** Anhand einer vom Nutzer bereitgestellten 2026-Streckenkarte waren nur 2 der tatsächlich 5 Zonen eingezeichnet — die alte Recherche basierte auf 2024/2025-DRS-Daten, die für 2026 (mehr Zonen durch das neue Active-Aero/Straight-Mode-Reglement) nicht mehr vollständig sind. Drei neue Zonen ergänzt: Ausgang La Source (kurz), sowie zwei Abschnitte im Sektor 3 (Rennrichtung Turn 15→16 und 17→18, vor der Bus-Stop-Schikane). Zonenzahl im Badge entsprechend von 2 auf 5 korrigiert.
-- **Spa: Straight-Mode-Zonen-Linien präzisiert.** Die Zonen waren aus nur 3-5 groben Stützpunkten linear interpoliert, wodurch die teal Linie an Kurven (z.B. dem kleinen Schlenker vor der Boxengeraden) sichtbar von der weißen Outline abwich. Jetzt alle 5 Einheiten Pfadlänge abgetastet (~35-70 Punkte pro Zone statt 3-5) — die Linie folgt jetzt jeder Kurve exakt. Zusätzlich die Strichbreite reduziert (13→8px), da die dicke Linie den echten kleinen Schlenker (vermutlich Boxenausfahrt-Einmündung) wie einen Rendering-Fehler statt ein Streckendetail wirken ließ.
-- **Straight Mode Zonen jetzt real auf der Streckenkarte eingezeichnet** (nicht nur als Zahl im Badge) — die Zonenzahl allein half wenig, wenn man die Zonen nicht sieht. **Jetzt für alle 22 Strecken der Saison** (nicht mehr nur die vier ursprünglich getesteten): Positionen wurden pro Strecke recherchiert (offizielle FIA-Angaben, Streckenguides) und als teal Linie direkt auf der weißen Outline gezeichnet. Bei zwei Strecken (Villeneuve, Madring) wurde eine Zone bewusst weggelassen statt geraten, weil sie sich aus der reinen Umriss-Geometrie nicht sicher genug lokalisieren ließ — Badge mit der offiziellen Gesamtzahl bleibt dort trotzdem korrekt. Badge selbst bleibt zusätzlich bestehen (bisher "DRS-Zonen" genannt, Umbenennung ab dieser Saison).
-- **config.title wird jetzt unterstützt.** Ein in der Lovelace-Kartenkonfiguration gesetzter Titel landete bisher nirgends sichtbar — er ersetzt jetzt den Text "Nächstes Rennen" in der eyebrow-line, statt in einer separaten generischen Titelzeile oberhalb des eigenen Carbon-Headers zu erscheinen.
-- **Streckenkarte nochmal vergrößert:** max-width von 45%/75% (Desktop/Mobil) auf 62%/92% angehoben, damit sie die verfügbare Höhe der Titelspalte konsequenter ausnutzt.
-- **Ort/Land + Flagge** unterhalb des Streckennamens (z.B. "🇧🇪 Spa, Belgium") — Daten kamen bereits mit dem Kalender-Sensor, wurden bisher aber nicht angezeigt. Flaggen-Zuordnung über eine feste Länder→Emoji-Tabelle (die 19 Länder der aktuellen Saison).
-- **Vorjahrespodium** (Top 3 des letztjährigen Rennens an dieser Strecke) als kompakte Zeile im Titelbereich, z.B. "PODIUM 2025 · 1. Piastri · 2. Norris · 3. Leclerc".
-- **Erster Grand Prix** (Jahr der ersten Austragung an dieser Strecke) als weiterer Eintrag im Fakten-Streifen.
-- **Sprint-Wochenende**: Sprint-Quali/Sprint-Zeilen im Wochenende-Zeitplan sind jetzt in Teal hervorgehoben statt unmarkiert zwischen den regulären Sessions zu stehen.
-- Podium und erstes-GP-Jahr kommen per direktem Browser-Fetch von Jolpica (`useCircuitHistory.js`, analog zum bestehenden `useWeather.js`-Muster) — Jolpica setzt `Access-Control-Allow-Origin: *`, ein Backend-/Sensor-Umbau war dafür nicht nötig.
-
-# v0.6.1 — Session-Karte: Wetter-Layout bei breitem Viewport korrigiert
-
-- **Strecken-Bedingungen (Wetter):** Bei Kartenbreiten ab 680 px wirkte das Wetterfeld winzig und zentriert in einem großen leeren Panel, weil die Tageskarten auf einspaltige, vertikal zentrierte Mini-Boxen umschalteten statt die gewonnene Breite zu nutzen. Die Tageskarten sind jetzt horizontale Zeilen (Label, Icon, Temperatur, Regen, Wind nebeneinander), die die volle Panel-Breite ausfüllen.
-- Die Zweispalten-Schwelle für Zeitplan/Wetter wurde von 600 px auf 680 px angehoben, da im Bereich 600–680 px sowohl die Zeitplan-Tabelle (Datum brach um) als auch die Wetter-Details (Windangabe brach um) zu eng wurden. Datum/Zeit-Zellen und Wetter-Details brechen jetzt nicht mehr um (`white-space: nowrap`).
-- **Streckenkarte (SVG-Outline):** Hochformatige Streckenumrisse (z.B. Spa, Villeneuve, Yas Marina) wirkten winzig und mittig in viel Leerraum, weil der Anzeigebereich eher breit als hoch ist. Die Bounding-Box jeder Strecke wird jetzt zur Laufzeit per `getBBox()` gemessen: Umrisse, die deutlich höher als breit sind, werden automatisch um ihren Mittelpunkt um 90° gedreht, und das SVG-viewBox wird eng auf die (ggf. gedrehte) Bounding-Box zugeschnitten statt das feste 500×500-Basis-viewBox zu nutzen. Dadurch skaliert jede Strecke verzerrungsfrei auf die maximal mögliche Größe im verfügbaren Bereich — automatisch für alle 22 Strecken, ohne pro Strecke gepflegte Werte.
-- **Streckenfakten (km/Runden/Kurven/Rundenrekord/Höhenmeter):** Die fünf Werte waren einzelne Boxen in einem `grid-auto-fit`-Raster, das sie bei breiten Karten auf die volle Restbreite streckte — winzige Zahl in einer riesigen leeren Box. Jetzt ein einziger kompakter Streifen mit dünnen Trennlinien statt fünf eigenständiger Boxen; die Werte wachsen nicht mehr einzeln mit der Kartenbreite, überschüssiger Platz bleibt schlicht als Rand rechts des Streifens. Mobil (Container ≤460px) steht der Rundenrekord als eigene zentrierte Zeile unter den anderen vier Werten, die sich zu viert eine Zeile teilen.
-- **Streckenkarte nutzt jetzt die volle Höhe der Titelspalte.** Die Größe kam bisher aus einer festen Breite (190/220px), wodurch bei kurzen, breiten (rotierten) Streckenumrissen sichtbarer Leerraum unter dem Bild blieb. Die Größe wird jetzt aus der zur Laufzeit gemessenen Bounding-Box als `aspect-ratio` gesetzt, `.hero` streckt die Streckenkarte (`align-items: stretch`) auf die Höhe des Titelblocks — sie füllt jetzt konsequent die verfügbare Höhe und kann dadurch deutlich größer werden als vorher.
-- **Header-Umbruch folgt jetzt der tatsächlichen Streckengröße statt eines festen Pixel-Schwellwerts.** Titel und Streckenkarte standen bisher exakt unter 420px Kartenbreite untereinander, unabhängig davon, ob die Strecke bei dieser Breite überhaupt noch nebeneinander gepasst hätte. `.hero` nutzt jetzt `flex-wrap`, und da die Streckenkarte ihre echte (gemessene) Seitenverhältnis-Breite als `aspect-ratio` mitbringt, entscheidet die tatsächliche Bildgröße mit über den Umbruchpunkt — unterschiedliche Streckenformen (z.B. das sehr breite Miami vs. das schmalere, rotierte Spa) brechen dadurch bei unterschiedlichen Breiten um.
-- **Mobil: Streckenkarte und Fakten-Streifen zentriert, Karte nutzt den frei gewordenen Platz.** Die Streckenkarte war auf mobilen Breiten (Container ≤460px) trotz umgebrochenem Layout weiterhin auf einen festen 240px-Wert begrenzt und stand links statt zentriert. `max-width` ist jetzt relativ (75% statt fixer Pixelwert) und `margin: 0 auto` zentriert sie tatsächlich; der Fakten-Streifen (vorher `inline-flex`, daher linksbündig) wird per `width: fit-content` + `margin: auto` ebenfalls zentriert.
-- **Streckenfakten sind jetzt Teil der Titelspalte statt einer eigenen Zeile darunter.** Dadurch, dass die Streckenkarte per `align-items: stretch` an der Höhe der Titelspalte ausgerichtet wird, blieb sie vorher auf die (kurze) reine Titelblock-Höhe begrenzt und wirkte trotz vorheriger Fixes klein gegenüber dem verbleibenden Leerraum. Titel, Badge und Fakten-Streifen bilden jetzt gemeinsam die Titelspalte — die Streckenkarte streckt sich entsprechend auf die addierte Höhe und wird dadurch spürbar größer.
-- **Status-Badge ("Anstehend"/"Live") steht jetzt direkt neben "Nächstes Rennen"** statt als eigene Zeile unterhalb von Datum/Zeitraum. Beide sitzen in einer gemeinsamen `eyebrow-line` (flex-wrap, damit es auf sehr schmalen Bildschirmen sauber umbricht statt zu überlaufen).
-
-# v0.6.0 — Responsive Design + Validierung
-
-- Alle vier Karten nutzen ab 600 px Breite ein zweispaltiges Layout:
-  - **Fahrerwertung:** Tabelle teilt sich automatisch in der Hälfte in zwei Spalten.
-  - **Konstrukteurswertung:** Zweite Spalte zeigt die Fahrer des Teams mit WM-Position und Punkten.
-  - **Session-Karte:** Countdown + Zeitplan links, Wetter rechts.
-  - **Letztes-Rennen-Karte:** Podium + Klassement links, Reifen-Strategie + Boxenstopps rechts.
-- **Konstrukteurswertung (Detail):** Die Team-Historie (letzte 5 Rennen) wurde mit Spalten-Headern versehen, die die Fahrer-Kürzel (TLA) zeigen. Leere oder DNF-Zustände werden nun sauber dargestellt.
-- **Fahrerwertung (Detail):** Die vertikalen Abstände im Detail-Popup wurden korrigiert. Die Elemente (Name, WM-Stand, Wikipedia-Text) sind nun im Desktop-Layout kompakt angeordnet, und unschöne Lücken durch CSS-Grid-Stretching wurden entfernt.
-- `npm run test:ci` baut das Bundle, prüft die Syntax und führt alle JSDOM-Tests aus.
-- Der aktive Session-Status (`active_session`) ist mit einem LIVE-Badge-Test abgedeckt.
-- Die dokumentierte Entität für den Rennrückblick lautet `sensor.f1_dashboard_letztes_rennen_detail`.
-
-# v0.4.0 — Vue 3 Redesign: Änderungen gegenüber v0.3.1
-
-## 🎨 Design
-
-| Aspekt | v0.3.x | v0.4.0 |
-|--------|--------|--------|
-| Framework | Vanilla JS | Vue 3 |
-| Styling | Inline CSS | scoped SFC |
-| Ästhetik | Modern minimalist | Carbon Dark + F1 Red |
-| Farbschema | Türkis/Neutral | Carbon (#101017) + Rot (#e10600) + Teal (#00e6c3) |
-| Mobile | Responsive | Optimiert für alle Screens |
-
-## 📊 Karten
-
-### Session-Card
-- **Neu:** Streckenlayout mit Live-SVG (Outline, Safety Car Line, Arrow)
-- **Neu:** Countdown bis nächste Session (Live aktualisiert)
-- **Neu:** Wetter Fr/Sa/So (direkt von Open-Meteo)
-- **Neu:** Kollabierbare Sections (Zeitplan, Bedingungen)
-- **Verbessert:** Zeitplan zeigt vergangene Sessions gedimmt, Rennen rot
-- **Entfernt:** Lap-by-Lap Details (Phase 2)
-
-### Drivers-Card
-- **Neu:** Fortschrittsbalken (Punkte relativ zu Leader)
-- **Neu:** Podium-Highlights (Gold/Silber/Bronze)
-- **Neu:** Länder-Emoji neben Team
-- **Neu:** Siege-Badge pro Fahrer
-- **Entfernt:** Große Treiber-Bilder (nicht nötig)
-
-### Constructors-Card
-- **Neu:** Größere Fortschrittsbalken (Teams visuell wichtiger)
-- **Neu:** Podium-Highlights
-- **Neu:** Siege-Badge pro Team
-- **Gleich:** Struktur ähnlich Drivers
-
-### Race-Recap-Card
-- **Neu:** 3D-Podium-Visualisierung (Positionen 1-3 größer)
-- **Neu:** Reifen-Compound-Ansicht (farbig: S=Rot, M=Gelb, H=Weiß, etc.)
-- **Neu:** Boxenstopps-Tabelle (Lap, Duration)
-- **Neu:** Top 10 Ergebnisse
-- **Entfernt:** Lap-by-Lap Simulation
-
-## 🔄 Datenfluss
-
-### Sensoren (HA Integration v0.3.1+)
-```
-sensor.f1_dashboard_session_status       → Trigger für Session-Card
-sensor.f1_dashboard_fahrerwertung        → Drivers-Card
-sensor.f1_dashboard_konstrukteurswertung → Constructors-Card
-sensor.f1_dashboard_letztes_rennen_detail → Race-Recap-Card
-sensor.f1_dashboard_live_track_positionen → (Phase 2: Canvas-Streaming)
-sensor.f1_dashboard_live_timing_tower     → (Phase 2: Live-Positionen)
-```
-
-### Externe APIs (direkt, ohne Sensoren)
-```
-Open-Meteo API (free)                    ← Wetter (Circuit-Koordinaten)
- └─ Nur aktiv wenn session_status wechselt
- └─ Refresh alle 30 Min
-```
-
-### Lokale Daten (embedded)
-```
-circuits.js (22 Strecken)                ← SVG-Outlines, Fakten
-teams.js (11 Teams + 2026er)             ← Teamfarben (constructorId → Hex)
-```
-
-## 📦 Bundle-Größe
-
-| Version | Size (raw) | Size (gzip) | Karten |
-|---------|-----------|------------|--------|
-| v0.3.1 | ~98 kB | ~48 kB | 4 (Vanilla JS) |
-| v0.4.0 | ~136 kB | ~53 kB | 4 (Vue 3) |
-
-**Begründung:** Vue 3 Runtime + Composition API overhead, aber alles in einer Datei (keine separaten Bundles).
-
-## ✅ Getestete Szenarien
-
-- [x] Alle 4 Karten rendern (JSDOM)
-- [x] Sensor-Integration (HA Mock)
-- [x] Open-Meteo Wetter-Fetch
-- [x] Responsive Layout (Mobile < 360px)
-- [x] Shadow-DOM Encapsulation
-- [x] Countdown-Timer (Live)
-- [x] Countdown-Timer (Karte unsichtbar = Pause)
-
-## 🚀 Nächste Schritte (Phase 2+)
-
-1. **Live Streckenkarte (Session-Card erweitern)**
-   - WebSocket zu `livetiming.formula1.com/signalrcore`
-   - Canvas-Rendering mit Fahrer-Positionen
-   - Trail-Animation (wie v0.3.0)
-
-2. **Histor. Daten (enrichment)**
-   - Fahrer-Karriere-Vergleiche
-   - Streck-Historie
-   - Trend-Analysen
-
-3. **UI Refinements**
-   - Theme-Switcher (Light/Dark)
-   - Konfigurierbare Acc icons
-   - Bessere Error-States
-
----
-
-**Kompatibilität:** v0.4.0 Cards funktionieren nur mit HA Integration v0.3.1+
