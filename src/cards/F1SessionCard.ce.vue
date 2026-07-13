@@ -7,8 +7,10 @@
  */
 import { computed, ref, onMounted, onUnmounted, watch, nextTick } from 'vue'
 import { CIRCUITS } from '../data/circuits.js'
+import { ZONES_2026 } from '../data/circuits_2026_zones.js'
 import { useWeather, weatherIcon } from '../composables/useWeather.js'
 import { useCircuitHistory, countryFlag } from '../composables/useCircuitHistory.js'
+import { useCircuitZones } from '../composables/useCircuitZones.js'
 
 const props = defineProps({
   hass: { type: Object, default: null },
@@ -32,6 +34,11 @@ const activeSession = computed(() => sessionState.value?.attributes?.active_sess
 
 const circuit = computed(() => nextRace.value?.Circuit ?? null)
 const circuitData = computed(() => CIRCUITS[circuit.value?.circuitId] ?? null)
+const circuitZones = computed(() => {
+  const id = circuit.value?.circuitId
+  return id ? useCircuitZones(id) : null
+})
+const zonesSummary = computed(() => circuitZones.value?.getSummary() ?? null)
 
 /* Overtake-Detection/-Activation liegen in circuits.js als einfacher "M x y"-Punkt vor
  * (kein voller Pfad nötig) - hier fürs Template in Kreis-Koordinaten zerlegt. */
@@ -260,13 +267,28 @@ const updatedLabel = computed(() =>
               <path v-if="circuitData.sf" :d="circuitData.sf" class="track-sf" />
               <path v-if="circuitData.arrow" :d="circuitData.arrow" class="track-arrow" />
               <path v-for="(zone, i) in circuitData.aeroZones" :key="i" :d="zone" class="track-aero-zone" />
-              <circle v-if="markerPoint(circuitData.overtakeDetection)" class="track-detection-point"
-                :cx="markerPoint(circuitData.overtakeDetection).x" :cy="markerPoint(circuitData.overtakeDetection).y" r="6" />
-              <circle v-if="markerPoint(circuitData.overtakeActivation)" class="track-activation-point"
-                :cx="markerPoint(circuitData.overtakeActivation).x" :cy="markerPoint(circuitData.overtakeActivation).y" r="6" />
+              <!-- 2026 Zone Visualization -->
+              <g v-if="circuitZones">
+                <!-- Overtake Detection Zone: Orange -->
+                <circle v-if="markerPoint(circuitData.overtakeDetection)" class="track-detection-point"
+                  :cx="markerPoint(circuitData.overtakeDetection).x" :cy="markerPoint(circuitData.overtakeDetection).y" r="6" />
+                <!-- Overtake Activation Zone: Green -->
+                <circle v-if="markerPoint(circuitData.overtakeActivation)" class="track-activation-point"
+                  :cx="markerPoint(circuitData.overtakeActivation).x" :cy="markerPoint(circuitData.overtakeActivation).y" r="6" />
+                <!-- Zone Labels (Straight Mode, Overtake info) -->
+                <text v-if="zonesSummary?.straightMode" class="zone-label straight-mode-label"
+                  x="50" y="30" font-size="12" fill="#00e6c3" opacity="0.8">
+                  {{ zonesSummary.straightMode.substring(0, 20) }}
+                </text>
+              </g>
             </g>
           </svg>
-          <span class="active-aero-badge" v-if="circuitData.zones">{{ circuitData.zones }}× Straight Mode</span>
+          <!-- 2026 Zone Info Badge -->
+          <span v-if="zonesSummary" class="zones-badge">
+            <span class="badge-item">🟠 Overtake: {{ zonesSummary.overtakingOpportunities }}</span>
+            <span class="badge-item">⚙️ Corners: MAX {{ zonesSummary.maxDownforceCorners }} / MIN {{ zonesSummary.minDownforceCorners }}</span>
+          </span>
+          <span class="active-aero-badge" v-else-if="circuitData.zones">{{ circuitData.zones }}× Straight Mode</span>
         </div>
       </header>
 
@@ -568,5 +590,47 @@ const updatedLabel = computed(() =>
   .chip-record { flex: 1 1 100%; border-right: none; border-top: 1px solid var(--panel-border); }
   /* Streifen selbst zentrieren statt linksbündig (inline-flex sitzt sonst am Zeilenanfang) */
   .chips { display: flex; width: fit-content; max-width: 100%; margin: 18px auto 0; }
+  .zones-badge { font-size: 7.5px; padding: 2px 5px; }
+}
+
+/* F1 2026 Zone Visualization */
+.hero-track { position: relative; }
+.zones-badge {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  position: absolute;
+  bottom: 8px;
+  left: 8px;
+  background: rgba(0, 230, 195, 0.15);
+  border: 1px solid rgba(0, 230, 195, 0.5);
+  border-radius: 4px;
+  padding: 4px 6px;
+  font-size: 9px;
+  color: var(--teal);
+  font-weight: 500;
+  z-index: 10;
+}
+.badge-item {
+  display: block;
+  line-height: 1.2;
+}
+.zone-label {
+  font-weight: bold;
+  text-shadow: 0 0 3px rgba(0, 0, 0, 0.8);
+  pointer-events: none;
+}
+.straight-mode-label {
+  fill: var(--teal);
+}
+.track-detection-point {
+  fill: #ff9900;
+  opacity: 0.8;
+  filter: drop-shadow(0 0 2px rgba(255, 153, 0, 0.6));
+}
+.track-activation-point {
+  fill: #00dd88;
+  opacity: 0.8;
+  filter: drop-shadow(0 0 2px rgba(0, 221, 136, 0.6));
 }
 </style>
