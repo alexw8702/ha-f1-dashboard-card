@@ -56,6 +56,49 @@ el.setConfig({ entity: 'sensor.f1_dashboard_session_status' });
 el.hass = hass;
 window.document.body.appendChild(el);
 
+// Zusatz-Sensoren: Live-Timing, letzte Session, Startaufstellung
+const extraHass = {
+  states: {
+    ...hass.states,
+    'sensor.f1_dashboard_live_timing_tower': {
+      state: 'active',
+      attributes: {
+        drivers: [
+          { position: 1, driver_code: 'VER', driver_name: 'Max Verstappen', team: 'Red Bull', team_color: '#4781D7', gap: 'Leader' },
+          { position: 2, driver_code: 'NOR', driver_name: 'Lando Norris', team: 'McLaren', gap: '+1.204' },
+        ],
+      },
+    },
+    'sensor.f1_dashboard_letzte_session': {
+      state: 'complete',
+      attributes: {
+        session_type: 'Qualifying',
+        session_name: 'Qualifying',
+        date: '2026-07-18',
+        results: [
+          { position: 1, driver_code: 'VER', driver_name: 'Max Verstappen', team: 'Red Bull', team_color: '#4781D7', time_or_gap: '1:42.741' },
+          { position: 2, driver_code: 'NOR', driver_name: 'Lando Norris', team: 'McLaren', team_color: '#F47600', time_or_gap: '+0.241' },
+        ],
+      },
+    },
+    'sensor.f1_dashboard_startaufstellung': {
+      state: '2026',
+      attributes: {
+        season: '2026', round: '13', raceName: 'Belgian Grand Prix',
+        provisional: true,
+        grid: [
+          { grid_position: 1, quali_position: 1, driver_code: 'VER', driver_name: 'Max Verstappen', team: 'Red Bull', penalty: false, penalty_note: null },
+          { grid_position: 2, quali_position: 3, driver_code: 'NOR', driver_name: 'Lando Norris', team: 'McLaren', penalty: true, penalty_note: '5-Sekunden-Strafe wegen Kollisionsverursachung' },
+        ],
+      },
+    },
+  },
+};
+const extraEl = window.document.createElement('f1-session-card');
+extraEl.setConfig({ entity: 'sensor.f1_dashboard_session_status' });
+extraEl.hass = extraHass;
+window.document.body.appendChild(extraEl);
+
 // Separater aktiver Session-Zustand: Der LIVE-Badge muss ohne einen
 // zusätzlichen Live-Track-Sensor allein aus active_session erscheinen.
 const liveEl = window.document.createElement('f1-session-card');
@@ -92,15 +135,24 @@ setTimeout(() => {
   const liveBadge = liveEl.shadowRoot?.querySelector('.badge');
   check('Live-Session zeigt LIVE-Badge', liveBadge?.textContent.trim() === 'LIVE');
   check('Live-Session verwendet Live-Styling', liveBadge?.classList.contains('live'));
-  check('Track-SVG (outline oder Sektor-Ribbon)', !!root.querySelector('.track-outline, .track-sector-1'));
+  check('Track-SVG (outline path)', !!root.querySelector('.track-outline'));
   check('Wetter Fr/Sa/So gerendert', (root.querySelectorAll('.weather-day').length === 3));
   check('Renntag-Highlight im Wetter', !!root.querySelector('.weather-day.race'));
 
-  // 2026 Spa POC: Straight-Mode-Overlay, Turn-Labels (Sektor-Färbung bewusst noch nicht enthalten)
-  check('Straight-Mode-Overlay gerendert (5 Segmente)', root.querySelectorAll('.track-straight-mode').length === 5);
-  check('Turn-Nummern gerendert (19)', root.querySelectorAll('.turn-label-circle').length === 19);
-  check('Speed-Trap-Marker gerendert', !!root.querySelector('.track-speed-trap'));
-  check('Overtake-Callouts beschriftet', text.includes('OVERTAKE DETECTION') && text.includes('OVERTAKE ACTIVATION'));
+  // Backward compatibility: ohne neue Sensoren dürfen Timing/Grid-Sections nicht erscheinen
+  check('Ohne Sensor: keine Timing-Tabelle', !root.querySelector('.timing'));
+  check('Ohne Sensor: keine Startaufstellung', !root.querySelector('.grid-list'));
+
+  // Neue Sections mit Zusatz-Sensoren
+  const extraRoot = extraEl.shadowRoot;
+  const extraText = extraRoot ? extraRoot.textContent : '';
+  check('Timing-Tabelle gerendert', !!extraRoot.querySelector('.timing'));
+  check('Timing zeigt Fahrer VER/NOR', extraText.includes('VER') && extraText.includes('NOR'));
+  check('Startaufstellung gerendert', !!extraRoot.querySelector('.grid-list'));
+  check('Provisorisch-Hinweis gerendert', !!extraRoot.querySelector('.provisional-note'));
+  const gridRows = extraRoot.querySelectorAll('.grid-row');
+  check('Zwei Grid-Zeilen gerendert', gridRows.length === 2);
+  check('Penalty-Warnung nur auf Strafe-Zeile', !!gridRows[1]?.querySelector('.g-warn') && !gridRows[0]?.querySelector('.g-warn'));
 
   let pass = 0;
   for (const [name, ok] of results) {

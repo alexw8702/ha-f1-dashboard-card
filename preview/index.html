@@ -122,6 +122,47 @@
             ],
           },
         },
+        'sensor.f1_dashboard_live_timing_tower': {
+          state: 'active',
+          last_updated: '2026-07-18T14:32:00+00:00',
+          attributes: {
+            drivers: [
+              { position: 1, driver_code: 'VER', driver_name: 'Max Verstappen', team: 'Red Bull', team_color: '#4781D7', gap: 'Leader', last_lap_time: '1:46.231' },
+              { position: 2, driver_code: 'NOR', driver_name: 'Lando Norris', team: 'McLaren', team_color: '#F47600', gap: '+1.204', last_lap_time: '1:46.512' },
+              { position: 3, driver_code: 'LEC', driver_name: 'Charles Leclerc', team: 'Ferrari', team_color: '#ED1131', gap: '+3.887', last_lap_time: '1:46.902' },
+            ],
+          },
+        },
+        'sensor.f1_dashboard_letzte_session': {
+          state: 'complete',
+          last_updated: '2026-07-18T15:05:00+00:00',
+          attributes: {
+            session_type: 'Qualifying',
+            session_name: 'Qualifying',
+            date: '2026-07-18',
+            results: [
+              { position: 1, driver_code: 'VER', driver_name: 'Max Verstappen', team: 'Red Bull', team_color: '#4781D7', time_or_gap: '1:42.741', laps: 18, status: null },
+              { position: 2, driver_code: 'NOR', driver_name: 'Lando Norris', team: 'McLaren', team_color: '#F47600', time_or_gap: '+0.241', laps: 17, status: null },
+              { position: 3, driver_code: 'LEC', driver_name: 'Charles Leclerc', team: 'Ferrari', team_color: '#ED1131', time_or_gap: '+0.398', laps: 17, status: null },
+              { position: 4, driver_code: 'RUS', driver_name: 'George Russell', team: 'Mercedes', team_color: '#00D7B6', time_or_gap: '+0.512', laps: 17, status: null },
+              { position: 5, driver_code: 'ANT', driver_name: 'Andrea Kimi Antonelli', team: 'Mercedes', team_color: '#00D7B6', time_or_gap: '+0.677', laps: 17, status: null },
+            ],
+          },
+        },
+        'sensor.f1_dashboard_startaufstellung': {
+          state: '2026',
+          last_updated: '2026-07-18T15:10:00+00:00',
+          attributes: {
+            season: '2026', round: '13', raceName: 'Belgian Grand Prix',
+            provisional: true,
+            grid: [
+              { grid_position: 1, quali_position: 1, driver_code: 'VER', driver_name: 'Max Verstappen', team: 'Red Bull', penalty: false, penalty_note: null },
+              { grid_position: 2, quali_position: 2, driver_code: 'NOR', driver_name: 'Lando Norris', team: 'McLaren', penalty: false, penalty_note: null },
+              { grid_position: 3, quali_position: 4, driver_code: 'RUS', driver_name: 'George Russell', team: 'Mercedes', penalty: false, penalty_note: null },
+              { grid_position: 4, quali_position: 3, driver_code: 'LEC', driver_name: 'Charles Leclerc', team: 'Ferrari', penalty: true, penalty_note: '5-Sekunden-Strafe wegen Kollisionsverursachung, als Zeitstrafe zur Startaufstellung addiert.' },
+            ],
+          },
+        },
         'sensor.f1_dashboard_letztes_rennen_detail': {
           state: 'complete',
           last_updated: '2026-07-11T08:30:00+00:00',

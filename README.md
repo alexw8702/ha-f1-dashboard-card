@@ -190,6 +190,12 @@ cards:
 
 ## Changelog
 
+### v0.6.5-beta.1 (In Beta)
+- 🏎️ **Timing-Tabelle in der Session Card:** Live-Positionen während einer laufenden Session, sonst Ergebnis der zuletzt abgeschlossenen Session (Training/Sprint/Quali/Rennen) — benötigt Integration ≥ v0.5.0-beta.1
+- 🏁 **Startaufstellung mit Strafen-Kennzeichnung:** Grid- neben Quali-Position, ⚠️-Hinweis inkl. Begründung bei abweichender Startposition
+- ⏳ **Provisorisch-Hinweis**, solange die offizielle FIA-Startaufstellung noch nicht feststeht
+- 🔄 **Kein Breaking Change:** beide Abschnitte sind additiv und bleiben ohne die neuen Sensoren unsichtbar
+
 ### v0.6.4-beta.1 (In Beta)
 - 🗺️ **Straight-Mode-Zonen jetzt auf der Streckenkarte:** rot gestrichelte Zonen entlang der echten Streckenführung statt nur als Text-Badge, plus nummerierte Turn-Marker an jeder Kurve
 - ✅ **Spa gegen offizielle 2026-Referenzkarte verifiziert:** 5 Zonen, 19 Turn-Positionen

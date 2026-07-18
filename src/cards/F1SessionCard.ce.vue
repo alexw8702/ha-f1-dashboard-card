@@ -11,6 +11,7 @@ import { ZONES_2026 } from '../data/circuits_2026_zones.js'
 import { useWeather, weatherIcon } from '../composables/useWeather.js'
 import { useCircuitHistory, countryFlag } from '../composables/useCircuitHistory.js'
 import { useCircuitZones } from '../composables/useCircuitZones.js'
+import { TEAM_COLORS } from '../data/teams.js'
 
 const props = defineProps({
   hass: { type: Object, default: null },
@@ -46,16 +47,6 @@ function markerPoint(point) {
   if (!point) return null
   const m = point.match(/(-?\d+\.?\d*)\s+(-?\d+\.?\d*)/)
   return m ? { x: Number(m[1]), y: Number(m[2]) } : null
-}
-
-/* Turn-Nummern und Zonen-Labels sollen bei gedrehten Strecken (siehe trackFit/rotate
- * unten) lesbar aufrecht bleiben statt mit der Strecke zu kippen: eine Gegenrotation
- * um denselben Punkt hebt die Rotation der äußeren <g> lokal wieder auf, ohne die
- * (durch die äußere Rotation bereits korrekt verschobene) Position zu verändern. */
-function labelCounterRotate(point) {
-  if (!trackFit.value?.transform) return null
-  const p = markerPoint(point)
-  return p ? `rotate(-90 ${p.x} ${p.y})` : null
 }
 
 /* ---------- Streckenkarte: enger Zuschnitt + Rotation für maximale Größe ---------- */
@@ -194,8 +185,68 @@ const weekendWeather = computed(() => {
   return out
 })
 
+/* ---------- Session-Timing (Live oder letzte Session) ---------- */
+function resolveTeamColor(explicit, teamName) {
+  if (explicit) return explicit
+  const id = (teamName || '').toLowerCase().trim().replace(/\s+/g, '_')
+  return TEAM_COLORS[id] || '#7a7a80'
+}
+
+const liveTimingState = computed(() =>
+  props.hass?.states?.['sensor.f1_dashboard_live_timing_tower'] ?? null)
+const liveDrivers = computed(() => liveTimingState.value?.attributes?.drivers ?? null)
+
+const lastSessionState = computed(() =>
+  props.hass?.states?.['sensor.f1_dashboard_letzte_session'] ?? null)
+const lastSessionAttrs = computed(() => lastSessionState.value?.attributes ?? null)
+
+/* Live-Sensor hat Vorrang (laufende Session), sonst die zuletzt abgeschlossene -
+ * Feldnamen des Live-Sensors sind nicht exakt dokumentiert, daher defensiv mit
+ * mehreren Fallback-Keys pro Feld statt einer festen Struktur. */
+const timingTable = computed(() => {
+  if (Array.isArray(liveDrivers.value) && liveDrivers.value.length) {
+    return {
+      live: true,
+      title: 'Live Timing',
+      rows: liveDrivers.value.map((d, i) => ({
+        position: d?.position ?? d?.pos ?? i + 1,
+        driverCode: d?.driver_code ?? d?.tla ?? d?.code ?? d?.driver ?? '–',
+        driverName: d?.driver_name ?? d?.full_name ?? d?.name ?? null,
+        team: d?.team ?? d?.team_name ?? d?.constructor ?? '–',
+        teamColor: resolveTeamColor(d?.team_color, d?.team ?? d?.team_name),
+        timeOrGap: d?.gap ?? d?.interval ?? d?.time_or_gap ?? d?.last_lap_time ?? d?.time ?? '–',
+      })),
+    }
+  }
+  const results = lastSessionAttrs.value?.results
+  if (Array.isArray(results) && results.length) {
+    return {
+      live: false,
+      title: lastSessionAttrs.value?.session_name || lastSessionAttrs.value?.session_type || 'Letzte Session',
+      rows: results.map(r => ({
+        position: r.position ?? '–',
+        driverCode: r.driver_code ?? '–',
+        driverName: r.driver_name ?? null,
+        team: r.team ?? '–',
+        teamColor: resolveTeamColor(r.team_color, r.team),
+        timeOrGap: r.time_or_gap ?? r.status ?? '–',
+      })),
+    }
+  }
+  return null
+})
+
+/* ---------- Startaufstellung ---------- */
+const startingGridAttrs = computed(() =>
+  props.hass?.states?.['sensor.f1_dashboard_startaufstellung']?.attributes ?? null)
+const startingGrid = computed(() => {
+  const grid = startingGridAttrs.value?.grid
+  if (!Array.isArray(grid) || !grid.length) return null
+  return { provisional: !!startingGridAttrs.value.provisional, rows: grid }
+})
+
 /* ---------- Sections (kollabierbar) ---------- */
-const openSections = ref({ schedule: true, conditions: true })
+const openSections = ref({ schedule: true, conditions: true, timing: true, grid: true })
 const toggle = key => (openSections.value[key] = !openSections.value[key])
 
 /* ---------- Status-Badge ---------- */
@@ -276,44 +327,29 @@ const updatedLabel = computed(() =>
               <path :d="circuitData.outline" class="track-outline" />
               <path v-if="circuitData.sf" :d="circuitData.sf" class="track-sf" />
               <path v-if="circuitData.arrow" :d="circuitData.arrow" class="track-arrow" />
-              <!-- aeroZones war die alte Straight-Mode-Darstellung (teal): nur noch für
-                   Strecken ohne die neuen straightModeZones zeichnen, sonst doppelt. -->
-              <template v-if="!circuitData.straightModeZones">
-                <path v-for="(zone, i) in circuitData.aeroZones" :key="i" :d="zone" class="track-aero-zone" />
-              </template>
-              <!-- Straight-Mode-Zonen (2026): gestrichelte rote Overlays, ein Segment je Gerade -->
-              <path v-for="(d, i) in circuitData.straightModeZones" :key="`sm-${i}`" :d="d" class="track-straight-mode" />
-              <!-- Turn-Nummern -->
-              <template v-for="(pt, n) in circuitData.turnLabels" :key="`turn-${n}`">
-                <g v-if="markerPoint(pt)" class="turn-label" :transform="labelCounterRotate(pt)">
-                  <circle :cx="markerPoint(pt).x" :cy="markerPoint(pt).y" r="7" class="turn-label-circle" />
-                  <text :x="markerPoint(pt).x" :y="markerPoint(pt).y" class="turn-label-text">{{ n }}</text>
-                </g>
-              </template>
+              <path v-for="(zone, i) in circuitData.aeroZones" :key="i" :d="zone" class="track-aero-zone" />
               <!-- 2026 Zone Visualization -->
               <g v-if="circuitZones">
-                <!-- Speed Trap -->
-                <g v-if="markerPoint(circuitData.speedTrap)" class="speed-trap" :transform="labelCounterRotate(circuitData.speedTrap)">
-                  <circle class="track-speed-trap" :cx="markerPoint(circuitData.speedTrap).x" :cy="markerPoint(circuitData.speedTrap).y" r="6" />
-                  <text class="zone-label speed-trap-label" :x="markerPoint(circuitData.speedTrap).x + 9" :y="markerPoint(circuitData.speedTrap).y">SPEED TRAP</text>
-                </g>
-                <!-- Overtake Detection Zone -->
-                <g v-if="markerPoint(circuitData.overtakeDetection)" :transform="labelCounterRotate(circuitData.overtakeDetection)">
-                  <circle class="track-detection-point"
-                    :cx="markerPoint(circuitData.overtakeDetection).x" :cy="markerPoint(circuitData.overtakeDetection).y" r="6" />
-                  <text class="zone-label overtake-label"
-                    :x="markerPoint(circuitData.overtakeDetection).x + 9" :y="markerPoint(circuitData.overtakeDetection).y">OVERTAKE DETECTION</text>
-                </g>
-                <!-- Overtake Activation Zone -->
-                <g v-if="markerPoint(circuitData.overtakeActivation)" :transform="labelCounterRotate(circuitData.overtakeActivation)">
-                  <circle class="track-activation-point"
-                    :cx="markerPoint(circuitData.overtakeActivation).x" :cy="markerPoint(circuitData.overtakeActivation).y" r="6" />
-                  <text class="zone-label overtake-label"
-                    :x="markerPoint(circuitData.overtakeActivation).x + 9" :y="markerPoint(circuitData.overtakeActivation).y">OVERTAKE ACTIVATION</text>
-                </g>
+                <!-- Overtake Detection Zone: Orange -->
+                <circle v-if="markerPoint(circuitData.overtakeDetection)" class="track-detection-point"
+                  :cx="markerPoint(circuitData.overtakeDetection).x" :cy="markerPoint(circuitData.overtakeDetection).y" r="6" />
+                <!-- Overtake Activation Zone: Green -->
+                <circle v-if="markerPoint(circuitData.overtakeActivation)" class="track-activation-point"
+                  :cx="markerPoint(circuitData.overtakeActivation).x" :cy="markerPoint(circuitData.overtakeActivation).y" r="6" />
+                <!-- Zone Labels (Straight Mode, Overtake info) -->
+                <text v-if="zonesSummary?.straightMode" class="zone-label straight-mode-label"
+                  x="50" y="30" font-size="12" fill="#00e6c3" opacity="0.8">
+                  {{ zonesSummary.straightMode.substring(0, 20) }}
+                </text>
               </g>
             </g>
           </svg>
+          <!-- 2026 Zone Info Badge -->
+          <span v-if="zonesSummary" class="zones-badge">
+            <span class="badge-item">🟠 Overtake: {{ zonesSummary.overtakingOpportunities }}</span>
+            <span class="badge-item">⚙️ Corners: MAX {{ zonesSummary.maxDownforceCorners }} / MIN {{ zonesSummary.minDownforceCorners }}</span>
+          </span>
+          <span class="active-aero-badge" v-else-if="circuitData.zones">{{ circuitData.zones }}× Straight Mode</span>
         </div>
       </header>
 
@@ -342,6 +378,28 @@ const updatedLabel = computed(() =>
               </tbody>
             </table>
           </section>
+
+          <!-- ================= TIMING (LIVE / LETZTE SESSION) ================= -->
+          <section class="section" v-if="timingTable">
+            <button class="section-head" @click="toggle('timing')">
+              <span>{{ timingTable.title }}<span v-if="timingTable.live" class="badge live timing-live-badge">LIVE</span></span>
+              <span class="chevron" :class="{ open: openSections.timing }">⌃</span>
+            </button>
+            <table v-if="openSections.timing" class="timing">
+              <tbody>
+                <tr v-for="row in timingTable.rows" :key="row.position">
+                  <td class="t-pos">{{ row.position }}</td>
+                  <td class="t-driver">
+                    <span class="t-dot" :style="{ background: row.teamColor }"></span>
+                    <span class="t-code">{{ row.driverCode }}</span>
+                    <span class="t-name" v-if="row.driverName">{{ row.driverName }}</span>
+                  </td>
+                  <td class="t-team">{{ row.team }}</td>
+                  <td class="t-gap">{{ row.timeOrGap }}</td>
+                </tr>
+              </tbody>
+            </table>
+          </section>
         </div>
 
         <div class="sections-right">
@@ -360,6 +418,30 @@ const updatedLabel = computed(() =>
                 <span class="w-detail">💨 {{ w.wind }} km/h</span>
               </div>
               <div v-if="!weekendWeather.length" class="w-empty">Wetterdaten werden geladen …</div>
+            </div>
+          </section>
+
+          <!-- ================= STARTAUFSTELLUNG ================= -->
+          <section class="section" v-if="startingGrid">
+            <button class="section-head" @click="toggle('grid')">
+              <span>Startaufstellung</span>
+              <span class="chevron" :class="{ open: openSections.grid }">⌃</span>
+            </button>
+            <div v-if="openSections.grid">
+              <div class="provisional-note" v-if="startingGrid.provisional">
+                Voraussichtlich – offizielle Startaufstellung folgt nach FIA-Freigabe
+              </div>
+              <div class="grid-list">
+                <div v-for="row in startingGrid.rows" :key="row.driver_code" class="grid-row" :class="{ penalty: row.penalty }">
+                  <span class="g-pos">{{ row.grid_position }}</span>
+                  <span class="g-quali" v-if="row.quali_position !== row.grid_position">
+                    (<s>P{{ row.quali_position }}</s>)
+                  </span>
+                  <span class="g-driver">{{ row.driver_code }}<small v-if="row.driver_name"> {{ row.driver_name }}</small></span>
+                  <span class="g-team">{{ row.team }}</span>
+                  <span class="g-warn" v-if="row.penalty" :title="row.penalty_note || 'Strafe'">⚠️</span>
+                </div>
+              </div>
             </div>
           </section>
         </div>
@@ -455,13 +537,15 @@ const updatedLabel = computed(() =>
 .track-aero-zone { fill: none; stroke: var(--teal); stroke-width: 8; stroke-linecap: round; stroke-linejoin: round; opacity: 0.75; }
 .track-detection-point { fill: #ffb400; stroke: #1a1a1a; stroke-width: 1.5; }
 .track-activation-point { fill: #00c853; stroke: #1a1a1a; stroke-width: 1.5; }
-
-.track-straight-mode { fill: none; stroke: var(--red); stroke-width: 3; stroke-dasharray: 6 4; stroke-linecap: round; opacity: 0.85; }
-.turn-label-circle { fill: #fff; stroke: #1a1a1a; stroke-width: 1; }
-.turn-label-text { fill: #101017; font-size: 8px; font-weight: 700; text-anchor: middle; dominant-baseline: central; }
-.track-speed-trap { fill: #ffd400; stroke: #1a1a1a; stroke-width: 1.5; }
-.speed-trap-label { fill: #ffd400; font-size: 7px; }
-.overtake-label { font-size: 7px; }
+.active-aero-badge {
+  position: absolute; left: 4px; bottom: 4px;
+  background: rgba(0, 230, 195, 0.12);
+  border: 1px solid rgba(0, 230, 195, 0.4);
+  color: var(--teal);
+  font-size: 9px; font-weight: 700; letter-spacing: 0.06em;
+  padding: 2px 7px; border-radius: 999px;
+  white-space: nowrap;
+}
 
 /* ---------- Chips ---------- */
 /* Ein einziger Streifen statt fünf einzeln umrandeter Boxen: bei breiten Karten
@@ -554,6 +638,43 @@ const updatedLabel = computed(() =>
 .w-detail { font-size: 10.5px; color: var(--text-dim); white-space: nowrap; }
 .w-empty { grid-column: 1 / -1; color: var(--text-dim); font-size: 12px; text-align: center; padding: 8px; }
 
+/* ---------- Timing ---------- */
+.timing { width: 100%; border-collapse: collapse; }
+.timing td { padding: 8px 12px; font-size: 12.5px; border-top: 1px solid var(--panel-border); }
+.t-pos { font-weight: 700; text-align: center; width: 26px; }
+.t-driver { display: flex; align-items: center; gap: 6px; white-space: nowrap; }
+.t-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+.t-code { font-weight: 700; letter-spacing: 0.04em; }
+.t-name { color: var(--text-dim); font-size: 11px; }
+.t-team { color: var(--text-dim); font-size: 11.5px; }
+.t-gap { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.timing-live-badge { margin-left: 8px; vertical-align: middle; }
+
+/* ---------- Startaufstellung ---------- */
+.provisional-note {
+  margin: 0 16px 10px; padding: 8px 10px;
+  background: rgba(255, 180, 0, 0.08);
+  border: 1px solid rgba(255, 180, 0, 0.35);
+  border-radius: 8px;
+  color: #ffb400;
+  font-size: 10.5px;
+  line-height: 1.4;
+}
+.grid-list { display: flex; flex-direction: column; padding: 0 0 4px; }
+.grid-row {
+  display: flex; align-items: center; gap: 8px;
+  padding: 8px 16px;
+  font-size: 12.5px;
+  border-top: 1px solid var(--panel-border);
+}
+.grid-row.penalty { background: rgba(225, 6, 0, 0.06); }
+.g-pos { font-weight: 700; width: 20px; text-align: center; }
+.g-quali { color: var(--text-dim); font-size: 11px; }
+.g-driver { flex: 1; font-weight: 600; min-width: 0; }
+.g-driver small { color: var(--text-dim); font-weight: 400; }
+.g-team { color: var(--text-dim); font-size: 11px; }
+.g-warn { cursor: help; }
+
 /* ---------- Footer ---------- */
 .foot {
   margin-top: 14px; text-align: center;
@@ -617,6 +738,35 @@ const updatedLabel = computed(() =>
 }
 
 /* F1 2026 Zone Visualization */
+.hero-track { position: relative; }
+.zones-badge {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  position: absolute;
+  bottom: 8px;
+  left: 8px;
+  background: rgba(0, 230, 195, 0.15);
+  border: 1px solid rgba(0, 230, 195, 0.5);
+  border-radius: 4px;
+  padding: 4px 6px;
+  font-size: 9px;
+  color: var(--teal);
+  font-weight: 500;
+  z-index: 10;
+}
+.badge-item {
+  display: block;
+  line-height: 1.2;
+}
+.zone-label {
+  font-weight: bold;
+  text-shadow: 0 0 3px rgba(0, 0, 0, 0.8);
+  pointer-events: none;
+}
+.straight-mode-label {
+  fill: var(--teal);
+}
 .track-detection-point {
   fill: #ff9900;
   opacity: 0.8;

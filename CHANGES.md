@@ -1,3 +1,12 @@
+# v0.6.5-beta.1 — Session Card: Timing-Tabelle und Startaufstellung mit Strafen-Kennzeichnung
+
+**Beta-Feature: Live/letzte Session-Zeiten und Startaufstellung inkl. Strafen-Hinweis direkt in der Session Card**
+
+- **Timing-Tabelle:** zeigt während einer laufenden Session die Live-Positionen/Zeiten (`sensor.f1_dashboard_live_timing_tower`), sonst das Ergebnis der zuletzt abgeschlossenen Session — Training, Sprint, Qualifying oder Rennen (neuer Backend-Sensor `sensor.f1_dashboard_letzte_session`, Integration ≥ v0.5.0-beta.1 erforderlich)
+- **Startaufstellung:** Grid-Position neben Qualifying-Position, Strafen visuell markiert (⚠️ mit Tooltip zur Begründung, sofern bekannt) — neuer Backend-Sensor `sensor.f1_dashboard_startaufstellung`
+- **Provisorisch-Hinweis:** solange die FIA-Startaufstellung noch nicht offiziell feststeht, zeigt die Karte einen Hinweis statt falsche Sicherheit vorzutäuschen
+- **Kein Breaking Change:** beide Abschnitte erscheinen nur, wenn die jeweiligen Sensoren vorhanden sind und Daten liefern — mit einer älteren Integration bleibt die Karte unverändert
+
 # v0.6.4-beta.1 — Spa & Red Bull Ring: Straight-Mode-Zonen auf der Streckenkarte
 
 **Beta-Feature: Straight-Mode-Zonen und Turn-Nummern werden jetzt direkt auf der SVG-Streckenkarte eingezeichnet, nicht mehr nur als Text-Badge**
