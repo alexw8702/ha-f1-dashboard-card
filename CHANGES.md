@@ -1,3 +1,13 @@
+# v0.6.4-beta.1 — Spa & Red Bull Ring: Straight-Mode-Zonen auf der Streckenkarte
+
+**Beta-Feature: Straight-Mode-Zonen und Turn-Nummern werden jetzt direkt auf der SVG-Streckenkarte eingezeichnet, nicht mehr nur als Text-Badge**
+
+- **Neue Streckenkarten-Overlays:** rot gestrichelte Straight-Mode-Zonen entlang der echten Streckenführung (Spa: 5 Zonen, Red Bull Ring: 3 Zonen), nummerierte Turn-Marker an jeder Kurve
+- **Spa gegen offizielle 2026-Referenzkarte verifiziert:** Zonen-Grenzen und Turn-Positionen über Bogenlängen-Abgleich der Outline-Geometrie kalibriert
+- **Red Bull Ring neu integriert:** Straight-Mode-Zonen, Turn-Labels, korrigierte Overtake Detection/Activation-Positionen
+- **Rendering:** `F1SessionCard.ce.vue` zeichnet `straightModeZones`/`turnLabels` aus `circuits.js`, wenn vorhanden; Strecken ohne diese Felder fallen weiterhin auf die bisherige Aero-Zonen-Darstellung zurück (kein Breaking Change)
+- **Weitere Strecken folgen:** Recherche und Kalibrierung für die restlichen 20 Strecken läuft, wird in kommenden Beta-Releases nachgezogen
+
 # v0.6.3-beta.3 — Build & Release Update
 
 **Beta maintenance release: rebuilt dist bundle with v0.6.3-beta.3 version stamp**

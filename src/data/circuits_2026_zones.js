@@ -31,11 +31,16 @@ export const ZONES_2026 = {
 
   spa: {
     name: "Spa-Francorchamps",
-    straightMode: { turns: [1, 5], length: 450, description: "Pit straight through Eau Rouge approach" },
+    straightMode: [
+      { turns: [19, 1], length: 450, description: "Pit straight" },
+      { turns: [1, 2], description: "Run to Eau Rouge" },
+      { turns: [4, 5], length: 620, description: "Kemmel straight" },
+      { turns: [15, 16], description: "Run to Blanchimont" },
+      { turns: [17, 18], description: "Blanchimont to Bus Stop" }
+    ],
     overtakeZones: [
-      { type: "detection", turn: 17, zone: "Bus Stop chicane" },
-      { type: "activation", turn: 18, zone: "Bus Stop exit" },
-      { type: "secondary", turns: [1, 2], zone: "Main straight" }
+      { type: "detection", turn: 18, zone: "Bus Stop chicane" },
+      { type: "activation", turn: 19, zone: "Start/finish straight" }
     ],
     activeAero: [
       { turn: 1, type: "MAX", speed: 85, notes: "La Source" },

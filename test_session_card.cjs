@@ -92,9 +92,15 @@ setTimeout(() => {
   const liveBadge = liveEl.shadowRoot?.querySelector('.badge');
   check('Live-Session zeigt LIVE-Badge', liveBadge?.textContent.trim() === 'LIVE');
   check('Live-Session verwendet Live-Styling', liveBadge?.classList.contains('live'));
-  check('Track-SVG (outline path)', !!root.querySelector('.track-outline'));
+  check('Track-SVG (outline oder Sektor-Ribbon)', !!root.querySelector('.track-outline, .track-sector-1'));
   check('Wetter Fr/Sa/So gerendert', (root.querySelectorAll('.weather-day').length === 3));
   check('Renntag-Highlight im Wetter', !!root.querySelector('.weather-day.race'));
+
+  // 2026 Spa POC: Straight-Mode-Overlay, Turn-Labels (Sektor-Färbung bewusst noch nicht enthalten)
+  check('Straight-Mode-Overlay gerendert (5 Segmente)', root.querySelectorAll('.track-straight-mode').length === 5);
+  check('Turn-Nummern gerendert (19)', root.querySelectorAll('.turn-label-circle').length === 19);
+  check('Speed-Trap-Marker gerendert', !!root.querySelector('.track-speed-trap'));
+  check('Overtake-Callouts beschriftet', text.includes('OVERTAKE DETECTION') && text.includes('OVERTAKE ACTIVATION'));
 
   let pass = 0;
   for (const [name, ok] of results) {

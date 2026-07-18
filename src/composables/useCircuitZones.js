@@ -7,9 +7,13 @@ export function useCircuitZones(circuitKey) {
   const zoneData = ZONES_2026[circuitKey];
   
   return {
-    // Straight Mode zone information
-    getStraightModeZone: () => zoneData?.straightMode || null,
-    
+    // Straight Mode zones, always as an array (older per-circuit data still has a single object)
+    getStraightModeZones: () => {
+      const sm = zoneData?.straightMode
+      if (!sm) return []
+      return Array.isArray(sm) ? sm : [sm]
+    },
+
     // Get all overtake zones (detection, activation, secondary)
     getOvertakeZones: () => zoneData?.overtakeZones || [],
     
@@ -36,7 +40,9 @@ export function useCircuitZones(circuitKey) {
     // For dashboard visualization
     getSummary: () => ({
       circuit: zoneData?.name,
-      straightMode: zoneData?.straightMode?.description || "N/A",
+      straightMode: (Array.isArray(zoneData?.straightMode)
+        ? zoneData.straightMode.map(s => s.description).join(' + ')
+        : zoneData?.straightMode?.description) || "N/A",
       overtakingOpportunities: zoneData?.overtakeZones?.length || 0,
       totalCorners: zoneData?.activeAero?.length || 0,
       maxDownforceCorners: zoneData?.activeAero?.filter(a => a.type === "MAX").length || 0,

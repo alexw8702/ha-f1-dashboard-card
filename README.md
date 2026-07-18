@@ -190,6 +190,13 @@ cards:
 
 ## Changelog
 
+### v0.6.4-beta.1 (In Beta)
+- 🗺️ **Straight-Mode-Zonen jetzt auf der Streckenkarte:** rot gestrichelte Zonen entlang der echten Streckenführung statt nur als Text-Badge, plus nummerierte Turn-Marker an jeder Kurve
+- ✅ **Spa gegen offizielle 2026-Referenzkarte verifiziert:** 5 Zonen, 19 Turn-Positionen
+- 🆕 **Red Bull Ring integriert:** 3 Zonen, 10 Turn-Positionen, korrigierte Overtake Detection/Activation
+- 🔄 **Kein Breaking Change:** Strecken ohne die neuen Felder fallen weiterhin auf die bisherige Aero-Zonen-Darstellung zurück
+- ⏳ Weitere Strecken folgen in kommenden Beta-Releases
+
 ### v0.6.3-beta.1 (In Beta)
 - 🏎️ **F1 2026 Circuit Zone Data:** Complete research and metadata for all 22 circuits
   - **Straight Mode zones** - Pit straight drag-reduction zones (FIA Technical Regulations 2026)
