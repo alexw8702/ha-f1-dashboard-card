@@ -190,6 +190,12 @@ cards:
 
 ## Changelog
 
+### v0.6.5-beta.3 (In Beta)
+- 🔀 **Quali-Ergebnis und Startaufstellung zusammengeführt:** eine Tabelle statt zwei, sobald die Startaufstellung vorliegt
+- 🔍 **Klick-to-Expand-Fahrerdetail:** Sektorzeiten, Quali-Zeit, Strafenbegründung (Integration ≥ v0.5.0-beta.2 für Sektorzeiten)
+- 🖼️ **Fahrerbild und Team-Logo** im Detail-Panel (Wikipedia, wie bei den Wertungs-Karten)
+- 🔄 **Kein Breaking Change:** fehlende Daten zeigen "–" statt kaputter Darstellung
+
 ### v0.6.5-beta.2 (In Beta)
 - 🐛 **Hotfix:** Straight-Mode-Zonen/Turn-Marker auf der Streckenkarte (Spa, seit v0.6.4-beta.1) waren beim Merge von v0.6.5-beta.1 versehentlich wieder verschwunden — behoben, jetzt mit Regressionstest abgesichert
 

@@ -259,6 +259,72 @@ const startingGrid = computed(() => {
 const openSections = ref({ schedule: true, conditions: true, timing: true, grid: true })
 const toggle = key => (openSections.value[key] = !openSections.value[key])
 
+/* Wenn die Startaufstellung vorliegt, ersetzt sie die generische Timing-Tabelle
+ * komplett (Quali-Ergebnis + Grid sind dann dasselbe), statt beide redundant
+ * anzuzeigen - siehe timingTable weiter oben. */
+const showTimingTable = computed(() => !!timingTable.value && !startingGrid.value)
+
+/* Klick auf eine Grid-Zeile klappt ein einzelnes Detail-Panel auf/zu (Accordion,
+ * nur eine Zeile gleichzeitig offen - reicht für den Anwendungsfall). */
+const expandedGridRow = ref(null)
+function toggleGridRow(code) {
+  expandedGridRow.value = expandedGridRow.value === code ? null : code
+  if (expandedGridRow.value === code) {
+    const row = startingGrid.value?.rows?.find(r => r.driver_code === code)
+    if (row) {
+      loadDriverPhoto(row)
+      loadTeamLogo(row)
+    }
+  }
+}
+
+/* Fahrerbild/Team-Logo fürs aufgeklappte Grid-Detail - gleiches Wikipedia-Summary-Muster
+ * wie in F1DriversCard/F1ConstructorsCard, hier per Cross-Reference gegen die Wertungs-
+ * Sensoren aufgelöst (die Grid-Zeilen selbst haben keine Wikipedia-URL). Lazy geladen
+ * beim Aufklappen und pro Session-Lebensdauer gecacht statt bei jedem Klick neu zu holen. */
+const driverStandings = computed(() =>
+  props.hass?.states?.['sensor.f1_dashboard_fahrerwertung']?.attributes?.standings || [])
+const constructorStandings = computed(() =>
+  props.hass?.states?.['sensor.f1_dashboard_konstrukteurswertung']?.attributes?.standings || [])
+
+const driverPhotoCache = ref({})
+const teamLogoCache = ref({})
+
+async function fetchWikiImage(url) {
+  try {
+    const urlObj = new URL(url)
+    const lang = urlObj.hostname.split('.')[0] || 'de'
+    const title = urlObj.pathname.split('/').pop()
+    if (!title) return ''
+    const res = await fetch(`https://${lang}.wikipedia.org/api/rest_v1/page/summary/${title}`)
+    if (!res.ok) return ''
+    const data = await res.json()
+    return data.thumbnail?.source || data.originalimage?.source || ''
+  } catch (e) {
+    console.error('Fehler beim Abrufen des Wikipedia-Bildes:', e)
+    return ''
+  }
+}
+
+function loadDriverPhoto(row) {
+  const code = row.driver_code
+  if (!code || code in driverPhotoCache.value) return
+  driverPhotoCache.value[code] = ''
+  const standing = driverStandings.value.find(d =>
+    (d.tla || d.abbreviation) === code || d.name === row.driver_name)
+  if (!standing?.url) return
+  fetchWikiImage(standing.url).then(src => { driverPhotoCache.value[code] = src })
+}
+
+function loadTeamLogo(row) {
+  const team = row.team
+  if (!team || team in teamLogoCache.value) return
+  teamLogoCache.value[team] = ''
+  const standing = constructorStandings.value.find(c => c.name === team || c.team === team)
+  if (!standing?.url) return
+  fetchWikiImage(standing.url).then(src => { teamLogoCache.value[team] = src })
+}
+
 /* ---------- Status-Badge ---------- */
 const statusLabel = computed(() => {
   if (activeSession.value) return { text: 'LIVE', cls: 'live' }
@@ -405,7 +471,9 @@ const updatedLabel = computed(() =>
           </section>
 
           <!-- ================= TIMING (LIVE / LETZTE SESSION) ================= -->
-          <section class="section" v-if="timingTable">
+          <!-- Liegt bereits eine Startaufstellung vor, übernimmt die (unten rechts
+               gerenderte) vereinigte Grid-Tabelle diese Rolle - siehe showTimingTable. -->
+          <section class="section" v-if="showTimingTable">
             <button class="section-head" @click="toggle('timing')">
               <span>{{ timingTable.title }}<span v-if="timingTable.live" class="badge live timing-live-badge">LIVE</span></span>
               <span class="chevron" :class="{ open: openSections.timing }">⌃</span>
@@ -457,15 +525,50 @@ const updatedLabel = computed(() =>
                 Voraussichtlich – offizielle Startaufstellung folgt nach FIA-Freigabe
               </div>
               <div class="grid-list">
-                <div v-for="row in startingGrid.rows" :key="row.driver_code" class="grid-row" :class="{ penalty: row.penalty }">
-                  <span class="g-pos">{{ row.grid_position }}</span>
-                  <span class="g-quali" v-if="row.quali_position !== row.grid_position">
-                    (<s>P{{ row.quali_position }}</s>)
-                  </span>
-                  <span class="g-driver">{{ row.driver_code }}<small v-if="row.driver_name"> {{ row.driver_name }}</small></span>
-                  <span class="g-team">{{ row.team }}</span>
-                  <span class="g-warn" v-if="row.penalty" :title="row.penalty_note || 'Strafe'">⚠️</span>
-                </div>
+                <template v-for="row in startingGrid.rows" :key="row.driver_code">
+                  <div
+                    class="grid-row"
+                    :class="{ penalty: row.penalty, expanded: expandedGridRow === row.driver_code }"
+                    @click="toggleGridRow(row.driver_code)"
+                  >
+                    <span class="g-pos">{{ row.grid_position }}</span>
+                    <span class="g-quali" v-if="row.quali_position !== row.grid_position">
+                      (<s>P{{ row.quali_position }}</s>)
+                    </span>
+                    <span class="g-driver">{{ row.driver_code }}<small v-if="row.driver_name"> {{ row.driver_name }}</small></span>
+                    <span class="g-team">{{ row.team }}</span>
+                    <span class="g-warn" v-if="row.penalty" title="Details in der Zeile aufklappen">⚠️</span>
+                  </div>
+                  <div class="grid-detail" v-if="expandedGridRow === row.driver_code">
+                    <div class="g-portrait-row">
+                      <img v-if="driverPhotoCache[row.driver_code]" class="g-driver-photo"
+                        :src="driverPhotoCache[row.driver_code]" :alt="row.driver_name" />
+                      <img v-if="teamLogoCache[row.team]" class="g-team-logo"
+                        :src="teamLogoCache[row.team]" :alt="row.team" />
+                      <div class="g-sectors">
+                        <div class="g-sector">
+                          <span class="g-sector-label">S1</span>
+                          <span class="g-sector-value">{{ row.sector_1 ?? '–' }}</span>
+                        </div>
+                        <div class="g-sector">
+                          <span class="g-sector-label">S2</span>
+                          <span class="g-sector-value">{{ row.sector_2 ?? '–' }}</span>
+                        </div>
+                        <div class="g-sector">
+                          <span class="g-sector-label">S3</span>
+                          <span class="g-sector-value">{{ row.sector_3 ?? '–' }}</span>
+                        </div>
+                        <div class="g-sector">
+                          <span class="g-sector-label">Quali-Zeit</span>
+                          <span class="g-sector-value">{{ row.quali_time ?? '–' }}</span>
+                        </div>
+                      </div>
+                    </div>
+                    <div class="g-penalty-note" v-if="row.penalty">
+                      {{ row.penalty_note || 'Strafe bekannt, Begründung nicht verfügbar' }}
+                    </div>
+                  </div>
+                </template>
               </div>
             </div>
           </section>
@@ -691,12 +794,44 @@ const updatedLabel = computed(() =>
   border-top: 1px solid var(--panel-border);
 }
 .grid-row.penalty { background: rgba(225, 6, 0, 0.06); }
+.grid-row { cursor: pointer; }
+.grid-row.expanded { background: rgba(255, 255, 255, 0.04); }
 .g-pos { font-weight: 700; width: 20px; text-align: center; }
 .g-quali { color: var(--text-dim); font-size: 11px; }
 .g-driver { flex: 1; font-weight: 600; min-width: 0; }
 .g-driver small { color: var(--text-dim); font-weight: 400; }
 .g-team { color: var(--text-dim); font-size: 11px; }
 .g-warn { cursor: help; }
+
+.grid-detail {
+  padding: 10px 16px 14px 44px;
+  background: rgba(255, 255, 255, 0.02);
+  border-top: 1px solid var(--panel-border);
+}
+.g-portrait-row { display: flex; align-items: center; gap: 12px; }
+.g-driver-photo {
+  width: 40px; height: 40px; border-radius: 50%;
+  object-fit: cover; object-position: top center;
+  border: 1px solid var(--panel-border);
+  flex-shrink: 0;
+}
+.g-team-logo {
+  width: 28px; height: 28px; object-fit: contain;
+  flex-shrink: 0;
+}
+.g-sectors { display: flex; flex-wrap: wrap; gap: 14px; }
+.g-sector { display: flex; flex-direction: column; gap: 2px; }
+.g-sector-label { font-size: 9.5px; color: var(--text-dim); letter-spacing: 0.1em; text-transform: uppercase; }
+.g-sector-value { font-size: 13px; font-weight: 700; font-variant-numeric: tabular-nums; }
+.g-penalty-note {
+  margin-top: 10px; padding: 8px 10px;
+  background: rgba(225, 6, 0, 0.08);
+  border: 1px solid rgba(225, 6, 0, 0.35);
+  border-radius: 8px;
+  color: #ff6b60;
+  font-size: 11.5px;
+  line-height: 1.4;
+}
 
 /* ---------- Footer ---------- */
 .foot {

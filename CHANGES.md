@@ -1,3 +1,12 @@
+# v0.6.5-beta.3 — Quali-Ergebnis und Startaufstellung zusammengeführt, Fahrer-Details
+
+**Feature: Quali-Ergebnis und Startaufstellung sind jetzt eine Tabelle statt zwei; Klick auf einen Fahrer zeigt Sektorzeiten, Strafenbegründung, Fahrerbild und Team-Logo**
+
+- **Eine Tabelle statt zwei:** Sobald die Startaufstellung vorliegt, ersetzt sie die generische Timing-Tabelle vollständig (kein redundantes Doppel-Rendering mehr) — Grid-Position, Quali-Position (durchgestrichen bei Abweichung), Fahrer, Team, Strafen-Warnsymbol
+- **Klick-to-Expand-Detail:** pro Fahrer aufklappbar — Sektorzeiten S1/S2/S3 und Quali-Zeit (neue Backend-Felder, Integration ≥ v0.5.0-beta.2 erforderlich), bei Strafen die Begründung im Klartext (oder ein ehrlicher Hinweis, falls die Begründung nicht bekannt ist)
+- **Fahrerbild und Team-Logo** im Detail-Panel, per Wikipedia-Cross-Referenz gegen die Fahrer-/Konstrukteurswertungs-Sensoren aufgelöst (gleiches Muster wie in den Fahrer-/Konstrukteurs-Karten), on-demand beim Aufklappen geladen und pro Sitzung gecacht
+- **Kein Breaking Change:** ohne die neuen Backend-Felder bleiben Sektorzeiten/Zeit als "–", ohne Wertungs-Match einfach kein Bild — nichts bricht
+
 # v0.6.5-beta.2 — Hotfix: Streckenkarten-Overlays (Spa) wieder sichtbar
 
 **Bugfix: die in v0.6.4-beta.1 eingeführten Straight-Mode-Zonen/Turn-Marker auf der Streckenkarte waren beim Merge der v0.6.5-beta.1-Änderungen versehentlich wieder entfernt worden**
