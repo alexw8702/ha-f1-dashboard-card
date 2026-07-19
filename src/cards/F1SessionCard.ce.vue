@@ -49,6 +49,16 @@ function markerPoint(point) {
   return m ? { x: Number(m[1]), y: Number(m[2]) } : null
 }
 
+/* Turn-Nummern und Zonen-Labels sollen bei gedrehten Strecken (siehe trackFit/rotate
+ * unten) lesbar aufrecht bleiben statt mit der Strecke zu kippen: eine Gegenrotation
+ * um denselben Punkt hebt die Rotation der äußeren <g> lokal wieder auf, ohne die
+ * (durch die äußere Rotation bereits korrekt verschobene) Position zu verändern. */
+function labelCounterRotate(point) {
+  if (!trackFit.value?.transform) return null
+  const p = markerPoint(point)
+  return p ? `rotate(-90 ${p.x} ${p.y})` : null
+}
+
 /* ---------- Streckenkarte: enger Zuschnitt + Rotation für maximale Größe ---------- */
 /* Manche Strecken (z.B. Spa) sind in ihrer Outline sehr hochformatig, während der
  * Anzeigebereich (Hero-Header) eher breit ist - das lässt die Karte winzig und
@@ -327,29 +337,44 @@ const updatedLabel = computed(() =>
               <path :d="circuitData.outline" class="track-outline" />
               <path v-if="circuitData.sf" :d="circuitData.sf" class="track-sf" />
               <path v-if="circuitData.arrow" :d="circuitData.arrow" class="track-arrow" />
-              <path v-for="(zone, i) in circuitData.aeroZones" :key="i" :d="zone" class="track-aero-zone" />
+              <!-- aeroZones war die alte Straight-Mode-Darstellung (teal): nur noch für
+                   Strecken ohne die neuen straightModeZones zeichnen, sonst doppelt. -->
+              <template v-if="!circuitData.straightModeZones">
+                <path v-for="(zone, i) in circuitData.aeroZones" :key="i" :d="zone" class="track-aero-zone" />
+              </template>
+              <!-- Straight-Mode-Zonen (2026): gestrichelte rote Overlays, ein Segment je Gerade -->
+              <path v-for="(d, i) in circuitData.straightModeZones" :key="`sm-${i}`" :d="d" class="track-straight-mode" />
+              <!-- Turn-Nummern -->
+              <template v-for="(pt, n) in circuitData.turnLabels" :key="`turn-${n}`">
+                <g v-if="markerPoint(pt)" class="turn-label" :transform="labelCounterRotate(pt)">
+                  <circle :cx="markerPoint(pt).x" :cy="markerPoint(pt).y" r="7" class="turn-label-circle" />
+                  <text :x="markerPoint(pt).x" :y="markerPoint(pt).y" class="turn-label-text">{{ n }}</text>
+                </g>
+              </template>
               <!-- 2026 Zone Visualization -->
               <g v-if="circuitZones">
-                <!-- Overtake Detection Zone: Orange -->
-                <circle v-if="markerPoint(circuitData.overtakeDetection)" class="track-detection-point"
-                  :cx="markerPoint(circuitData.overtakeDetection).x" :cy="markerPoint(circuitData.overtakeDetection).y" r="6" />
-                <!-- Overtake Activation Zone: Green -->
-                <circle v-if="markerPoint(circuitData.overtakeActivation)" class="track-activation-point"
-                  :cx="markerPoint(circuitData.overtakeActivation).x" :cy="markerPoint(circuitData.overtakeActivation).y" r="6" />
-                <!-- Zone Labels (Straight Mode, Overtake info) -->
-                <text v-if="zonesSummary?.straightMode" class="zone-label straight-mode-label"
-                  x="50" y="30" font-size="12" fill="#00e6c3" opacity="0.8">
-                  {{ zonesSummary.straightMode.substring(0, 20) }}
-                </text>
+                <!-- Speed Trap -->
+                <g v-if="markerPoint(circuitData.speedTrap)" class="speed-trap" :transform="labelCounterRotate(circuitData.speedTrap)">
+                  <circle class="track-speed-trap" :cx="markerPoint(circuitData.speedTrap).x" :cy="markerPoint(circuitData.speedTrap).y" r="6" />
+                  <text class="zone-label speed-trap-label" :x="markerPoint(circuitData.speedTrap).x + 9" :y="markerPoint(circuitData.speedTrap).y">SPEED TRAP</text>
+                </g>
+                <!-- Overtake Detection Zone -->
+                <g v-if="markerPoint(circuitData.overtakeDetection)" :transform="labelCounterRotate(circuitData.overtakeDetection)">
+                  <circle class="track-detection-point"
+                    :cx="markerPoint(circuitData.overtakeDetection).x" :cy="markerPoint(circuitData.overtakeDetection).y" r="6" />
+                  <text class="zone-label overtake-label"
+                    :x="markerPoint(circuitData.overtakeDetection).x + 9" :y="markerPoint(circuitData.overtakeDetection).y">OVERTAKE DETECTION</text>
+                </g>
+                <!-- Overtake Activation Zone -->
+                <g v-if="markerPoint(circuitData.overtakeActivation)" :transform="labelCounterRotate(circuitData.overtakeActivation)">
+                  <circle class="track-activation-point"
+                    :cx="markerPoint(circuitData.overtakeActivation).x" :cy="markerPoint(circuitData.overtakeActivation).y" r="6" />
+                  <text class="zone-label overtake-label"
+                    :x="markerPoint(circuitData.overtakeActivation).x + 9" :y="markerPoint(circuitData.overtakeActivation).y">OVERTAKE ACTIVATION</text>
+                </g>
               </g>
             </g>
           </svg>
-          <!-- 2026 Zone Info Badge -->
-          <span v-if="zonesSummary" class="zones-badge">
-            <span class="badge-item">🟠 Overtake: {{ zonesSummary.overtakingOpportunities }}</span>
-            <span class="badge-item">⚙️ Corners: MAX {{ zonesSummary.maxDownforceCorners }} / MIN {{ zonesSummary.minDownforceCorners }}</span>
-          </span>
-          <span class="active-aero-badge" v-else-if="circuitData.zones">{{ circuitData.zones }}× Straight Mode</span>
         </div>
       </header>
 
@@ -537,15 +562,13 @@ const updatedLabel = computed(() =>
 .track-aero-zone { fill: none; stroke: var(--teal); stroke-width: 8; stroke-linecap: round; stroke-linejoin: round; opacity: 0.75; }
 .track-detection-point { fill: #ffb400; stroke: #1a1a1a; stroke-width: 1.5; }
 .track-activation-point { fill: #00c853; stroke: #1a1a1a; stroke-width: 1.5; }
-.active-aero-badge {
-  position: absolute; left: 4px; bottom: 4px;
-  background: rgba(0, 230, 195, 0.12);
-  border: 1px solid rgba(0, 230, 195, 0.4);
-  color: var(--teal);
-  font-size: 9px; font-weight: 700; letter-spacing: 0.06em;
-  padding: 2px 7px; border-radius: 999px;
-  white-space: nowrap;
-}
+
+.track-straight-mode { fill: none; stroke: var(--red); stroke-width: 3; stroke-dasharray: 6 4; stroke-linecap: round; opacity: 0.85; }
+.turn-label-circle { fill: #fff; stroke: #1a1a1a; stroke-width: 1; }
+.turn-label-text { fill: #101017; font-size: 8px; font-weight: 700; text-anchor: middle; dominant-baseline: central; }
+.track-speed-trap { fill: #ffd400; stroke: #1a1a1a; stroke-width: 1.5; }
+.speed-trap-label { fill: #ffd400; font-size: 7px; }
+.overtake-label { font-size: 7px; }
 
 /* ---------- Chips ---------- */
 /* Ein einziger Streifen statt fünf einzeln umrandeter Boxen: bei breiten Karten
@@ -738,35 +761,6 @@ const updatedLabel = computed(() =>
 }
 
 /* F1 2026 Zone Visualization */
-.hero-track { position: relative; }
-.zones-badge {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  position: absolute;
-  bottom: 8px;
-  left: 8px;
-  background: rgba(0, 230, 195, 0.15);
-  border: 1px solid rgba(0, 230, 195, 0.5);
-  border-radius: 4px;
-  padding: 4px 6px;
-  font-size: 9px;
-  color: var(--teal);
-  font-weight: 500;
-  z-index: 10;
-}
-.badge-item {
-  display: block;
-  line-height: 1.2;
-}
-.zone-label {
-  font-weight: bold;
-  text-shadow: 0 0 3px rgba(0, 0, 0, 0.8);
-  pointer-events: none;
-}
-.straight-mode-label {
-  fill: var(--teal);
-}
 .track-detection-point {
   fill: #ff9900;
   opacity: 0.8;

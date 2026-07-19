@@ -136,6 +136,8 @@ setTimeout(() => {
   check('Live-Session zeigt LIVE-Badge', liveBadge?.textContent.trim() === 'LIVE');
   check('Live-Session verwendet Live-Styling', liveBadge?.classList.contains('live'));
   check('Track-SVG (outline path)', !!root.querySelector('.track-outline'));
+  check('Track-SVG: Straight-Mode-Zonen (Spa)', root.querySelectorAll('.track-straight-mode').length > 0);
+  check('Track-SVG: Turn-Marker (Spa)', root.querySelectorAll('.turn-label').length > 0);
   check('Wetter Fr/Sa/So gerendert', (root.querySelectorAll('.weather-day').length === 3));
   check('Renntag-Highlight im Wetter', !!root.querySelector('.weather-day.race'));
 

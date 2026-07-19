@@ -190,6 +190,9 @@ cards:
 
 ## Changelog
 
+### v0.6.5-beta.2 (In Beta)
+- 🐛 **Hotfix:** Straight-Mode-Zonen/Turn-Marker auf der Streckenkarte (Spa, seit v0.6.4-beta.1) waren beim Merge von v0.6.5-beta.1 versehentlich wieder verschwunden — behoben, jetzt mit Regressionstest abgesichert
+
 ### v0.6.5-beta.1 (In Beta)
 - 🏎️ **Timing-Tabelle in der Session Card:** Live-Positionen während einer laufenden Session, sonst Ergebnis der zuletzt abgeschlossenen Session (Training/Sprint/Quali/Rennen) — benötigt Integration ≥ v0.5.0-beta.1
 - 🏁 **Startaufstellung mit Strafen-Kennzeichnung:** Grid- neben Quali-Position, ⚠️-Hinweis inkl. Begründung bei abweichender Startposition

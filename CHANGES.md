@@ -1,3 +1,11 @@
+# v0.6.5-beta.2 — Hotfix: Streckenkarten-Overlays (Spa) wieder sichtbar
+
+**Bugfix: die in v0.6.4-beta.1 eingeführten Straight-Mode-Zonen/Turn-Marker auf der Streckenkarte waren beim Merge der v0.6.5-beta.1-Änderungen versehentlich wieder entfernt worden**
+
+- `F1SessionCard.ce.vue` wurde beim Zusammenführen der Timing-Tabelle/Startaufstellung-Änderungen von einer veralteten Basis überschrieben, die das Zonen-/Turn-Rendering aus v0.6.4-beta.1 noch nicht enthielt — die Streckenkarte fiel dadurch stillschweigend auf die alte Darstellung zurück
+- Sauber per 3-Way-Merge zusammengeführt: beide Feature-Sets (Zonen-Overlay + Timing/Grid) sind jetzt gemeinsam vorhanden
+- Neue Regressionstests (`.track-straight-mode`, `.turn-label`) verhindern, dass das künftig unbemerkt erneut passiert
+
 # v0.6.5-beta.1 — Session Card: Timing-Tabelle und Startaufstellung mit Strafen-Kennzeichnung
 
 **Beta-Feature: Live/letzte Session-Zeiten und Startaufstellung inkl. Strafen-Hinweis direkt in der Session Card**
